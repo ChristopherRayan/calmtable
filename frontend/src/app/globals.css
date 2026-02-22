@@ -1,0 +1,15 @@
+/* Global styles for the initial frontend container smoke test. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #fdfbf7;
+  color: #2b1d16;
+}

@@ -1,1 +1,23 @@
-# Docker Compose development overrides scaffold (implemented in STEP 3).
+# Development overrides for hot-reload workflows.
+services:
+  backend:
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    volumes:
+      - ./backend:/app
+    environment:
+      DEBUG: 'True'
+      USE_SQLITE: 'False'
+
+  frontend:
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_BASE_URL: http://localhost/api
+
+  nginx:
+    depends_on:
+      - frontend

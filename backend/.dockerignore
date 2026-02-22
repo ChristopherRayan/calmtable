@@ -1,0 +1,12 @@
+# Ignore local-only artifacts from backend image builds.
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.env
+.venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,8 @@
+# Ignore local-only artifacts from frontend image builds.
+node_modules/
+.next/
+out/
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
