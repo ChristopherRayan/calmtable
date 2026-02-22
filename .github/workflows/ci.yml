@@ -1,0 +1,11 @@
+# CI workflow scaffold (implemented in STEP 4).
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI workflow scaffolded in STEP 1."

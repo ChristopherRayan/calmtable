@@ -1,0 +1,9 @@
+{
+  "name": "calm-table-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Scaffold package manifest for Calm Table frontend (implemented in STEP 5)",
+  "scripts": {
+    "dev": "echo \"Frontend scaffold ready. STEP 5 will replace this with Next.js setup.\""
+  }
+}
