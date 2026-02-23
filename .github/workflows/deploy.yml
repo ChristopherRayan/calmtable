@@ -1,11 +1,25 @@
-# Deploy workflow scaffold (implemented in STEP 4).
+# Deployment stub that runs after CI completes successfully on main.
 name: Deploy
 
 on:
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
 
 jobs:
-  placeholder:
+  deploy:
+    name: Deploy Stub
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Deploy workflow scaffolded in STEP 1."
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deployment Placeholder
+        run: |
+          echo "CI passed for main branch."
+          echo "Connect this job to your cloud platform next:"
+          echo "1) Authenticate with provider (Railway/Render/VPS)."
+          echo "2) Build/push images or deploy source."
+          echo "3) Run migrations in production."
+          echo "4) Run smoke checks against live URLs."

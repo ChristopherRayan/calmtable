@@ -1,11 +1,80 @@
-# CI workflow scaffold (implemented in STEP 4).
+# Runs lint/test/build checks for backend and frontend on PRs and pushes.
 name: CI
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  placeholder:
+  backend:
+    name: Backend Lint and Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SECRET_KEY: test-secret-key
+      DEBUG: "False"
+      USE_SQLITE: "True"
+      SQLITE_PATH: /tmp/calmtable-test.sqlite3
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost
+      MAX_RESERVATIONS_PER_SLOT: "3"
+      RESERVATION_TIME_SLOTS: 17:00,17:30,18:00,18:30,19:00,19:30,20:00,20:30,21:00
+      ACCESS_TOKEN_LIFETIME_MINUTES: "15"
+      REFRESH_TOKEN_LIFETIME_DAYS: "7"
+      REDIS_URL: redis://localhost:6379/0
+      CELERY_BROKER_URL: redis://localhost:6379/0
+      CELERY_RESULT_BACKEND: redis://localhost:6379/1
+      EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
+      DEFAULT_FROM_EMAIL: no-reply@calmtable.local
     steps:
-      - run: echo "CI workflow scaffolded in STEP 1."
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Flake8
+        run: flake8 .
+
+      - name: Run Pytest with Coverage
+        run: pytest --cov=api --cov-report=term-missing --cov-report=xml
+
+  frontend:
+    name: Frontend Lint Typecheck Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript Check
+        run: npx tsc --noEmit
+
+      - name: Build Next.js
+        run: npm run build
