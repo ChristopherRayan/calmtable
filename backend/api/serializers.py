@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
-from .models import MenuItem, Order, OrderItem, Reservation, Review
+from .models import MenuItem, Order, OrderItem, Reservation, Review, UserProfile
 
 User = get_user_model()
 
@@ -12,13 +12,40 @@ class UserPublicSerializer(serializers.ModelSerializer):
     """Public-facing user payload used in auth responses."""
 
     role = serializers.SerializerMethodField()
+    phone = serializers.SerializerMethodField()
+    profile_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ("id", "username", "email", "first_name", "last_name", "is_staff", "role")
+        fields = (
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "profile_image_url",
+            "is_staff",
+            "role",
+        )
 
     def get_role(self, obj):
         return "admin" if obj.is_staff else "customer"
+
+    def get_phone(self, obj):
+        profile = getattr(obj, "profile", None)
+        return profile.phone if profile else ""
+
+    def get_profile_image_url(self, obj):
+        profile = getattr(obj, "profile", None)
+        if not profile or not profile.profile_image:
+            return ""
+
+        request = self.context.get("request")
+        url = profile.profile_image.url
+        if request:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -66,11 +93,61 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
+class UserProfileUpdateSerializer(serializers.Serializer):
+    """Serializer for customer/staff profile edits excluding email changes."""
+
+    first_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
+    last_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
+    phone = serializers.CharField(required=False, allow_blank=True, max_length=30)
+    profile_image = serializers.ImageField(required=False, allow_null=True)
+    clear_profile_image = serializers.BooleanField(required=False, default=False)
+
+    def update(self, instance, validated_data):
+        profile, _ = UserProfile.objects.get_or_create(user=instance)
+
+        if "first_name" in validated_data:
+            instance.first_name = validated_data["first_name"]
+        if "last_name" in validated_data:
+            instance.last_name = validated_data["last_name"]
+        instance.save(update_fields=["first_name", "last_name"])
+
+        if "phone" in validated_data:
+            profile.phone = validated_data["phone"]
+
+        if validated_data.get("clear_profile_image"):
+            profile.profile_image.delete(save=False)
+            profile.profile_image = None
+        elif "profile_image" in validated_data:
+            profile.profile_image = validated_data["profile_image"]
+
+        profile.save(update_fields=["phone", "profile_image", "updated_at"])
+        return instance
+
+
 class MenuItemSerializer(serializers.ModelSerializer):
     """Serializer for menu item responses including average ratings."""
 
+    image_url = serializers.SerializerMethodField(read_only=True)
+    image_file = serializers.SerializerMethodField(read_only=True)
     average_rating = serializers.FloatField(read_only=True)
     ordered_count = serializers.SerializerMethodField(read_only=True)
+
+    def get_image_url(self, obj):
+        request = self.context.get("request")
+        url = obj.preferred_image_url
+        if not url:
+            return ""
+        if request and str(url).startswith("/"):
+            return request.build_absolute_uri(url)
+        return url
+
+    def get_image_file(self, obj):
+        if not obj.image_file:
+            return ""
+        request = self.context.get("request")
+        if request:
+            return request.build_absolute_uri(obj.image_file.url)
+        return obj.image_file.url
 
     def get_ordered_count(self, obj):
         return int(getattr(obj, "ordered_count", 0) or 0)
@@ -84,6 +161,7 @@ class MenuItemSerializer(serializers.ModelSerializer):
             "price",
             "category",
             "image_url",
+            "image_file",
             "is_available",
             "is_featured",
             "dietary_tags",

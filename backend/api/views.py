@@ -13,6 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
@@ -26,6 +27,7 @@ from .serializers import (
     OrderSerializer,
     ReservationSerializer,
     ReviewSerializer,
+    UserProfileUpdateSerializer,
     UserPublicSerializer,
     UserRegisterSerializer,
 )
@@ -62,7 +64,7 @@ class RegisterAPIView(APIView):
         refresh = RefreshToken.for_user(user)
         return Response(
             {
-                "user": UserPublicSerializer(user).data,
+                "user": UserPublicSerializer(user, context={"request": request}).data,
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
             },
@@ -84,7 +86,7 @@ class LoginAPIView(APIView):
 
         return Response(
             {
-                "user": UserPublicSerializer(user).data,
+                "user": UserPublicSerializer(user, context={"request": request}).data,
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
             }
@@ -114,9 +116,20 @@ class MeAPIView(APIView):
     """Return profile details for the current authenticated user."""
 
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = (JSONParser, FormParser, MultiPartParser)
 
     def get(self, request):
-        return Response(UserPublicSerializer(request.user).data)
+        return Response(UserPublicSerializer(request.user, context={"request": request}).data)
+
+    def patch(self, request):
+        serializer = UserProfileUpdateSerializer(
+            instance=request.user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(UserPublicSerializer(user, context={"request": request}).data)
 
 
 class MyReservationsAPIView(APIView):

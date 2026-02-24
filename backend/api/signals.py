@@ -1,9 +1,12 @@
 """Model signal handlers for reservation lifecycle side effects."""
+from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from .models import Reservation
+from .models import Reservation, UserProfile
 from .tasks import send_reservation_confirmation_email, send_reservation_status_email
+
+User = get_user_model()
 
 
 def _dispatch_task(task, *args):
@@ -35,3 +38,10 @@ def reservation_post_save(sender, instance: Reservation, created: bool, **kwargs
     previous_status = getattr(instance, "_previous_status", None)
     if previous_status and previous_status != instance.status:
         _dispatch_task(send_reservation_status_email, instance.id, instance.status)
+
+
+@receiver(post_save, sender=User)
+def ensure_profile_exists(sender, instance, created: bool, **kwargs):
+    """Create a profile row for each new user account."""
+    if created:
+        UserProfile.objects.create(user=instance)

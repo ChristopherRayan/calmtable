@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -27,8 +28,7 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/menu', label: 'Menu' },
-  { href: '/chefs', label: 'Chefs' },
-  { href: '/about', label: 'About Us' },
+  { href: '/book', label: 'Book a Table' },
   { href: '/contact', label: 'Contact' },
 ];
 
@@ -50,6 +50,7 @@ export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState(defaultNotifications);
@@ -60,6 +61,8 @@ export function Navigation() {
   const { user, loading, isAuthenticated, logout } = useAuth();
   const { itemCount, setIsOpen } = useCart();
   const { resolvedTheme, toggleTheme } = useTheme();
+  const isHome = pathname === '/';
+  const isTransparentNav = isHome && !isScrolled;
 
   const unreadCount = notifications.filter((notification) => notification.unread).length;
   const profileName = useMemo(() => {
@@ -84,6 +87,16 @@ export function Navigation() {
 
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 60);
+    }
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   function isActive(path: string) {
@@ -129,10 +142,23 @@ export function Navigation() {
   }
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 border-b border-woodAccent/20 bg-gradient-to-b from-cream/95 to-cream/85 backdrop-blur-md">
+    <header
+      className={cn(
+        'fixed left-0 right-0 top-0 z-50 transition-all duration-300',
+        isTransparentNav
+          ? 'border-b border-transparent bg-transparent'
+          : 'border-b border-woodAccent/20 bg-gradient-to-b from-cream/95 to-cream/85 backdrop-blur-md'
+      )}
+    >
       <nav className="page-shell flex h-20 items-center justify-between" aria-label="Main">
-        <Link href="/" className="font-heading text-xl font-bold uppercase tracking-[0.14em] text-woodAccent">
-          <span className="text-ink/92">The</span> CalmTable
+        <Link
+          href="/"
+          className={cn(
+            'font-heading text-xl font-bold uppercase tracking-[0.14em]',
+            isTransparentNav ? 'text-white' : 'text-woodAccent'
+          )}
+        >
+          <span className={cn(isTransparentNav ? 'text-white/90' : 'text-ink/92')}>The</span> CalmTable
         </Link>
 
         <ul className="hidden items-center gap-8 lg:flex">
@@ -141,7 +167,8 @@ export function Navigation() {
               <Link
                 href={link.href}
                 className={cn(
-                  'relative text-[11px] font-medium uppercase tracking-[0.18em] text-ink/58 hover:text-woodAccent',
+                  'relative text-[11px] font-medium uppercase tracking-[0.18em] hover:text-woodAccent',
+                  isTransparentNav ? 'text-white/80' : 'text-ink/58',
                   isActive(link.href) && 'text-woodAccent'
                 )}
               >
@@ -159,7 +186,10 @@ export function Navigation() {
             <div ref={bellWrapRef} className="relative">
               <button
                 type="button"
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-woodAccent hover:bg-woodAccent/10"
+                className={cn(
+                  'relative inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-woodAccent/10',
+                  isTransparentNav ? 'text-white' : 'text-woodAccent'
+                )}
                 onClick={() => {
                   setNotificationsOpen((current) => !current);
                   setProfileOpen(false);
@@ -204,7 +234,10 @@ export function Navigation() {
 
           <button
             type="button"
-            className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-woodAccent hover:bg-woodAccent/10"
+            className={cn(
+              'relative inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-woodAccent/10',
+              isTransparentNav ? 'text-white' : 'text-woodAccent'
+            )}
             onClick={handleOpenCart}
             aria-label="Open cart"
           >
@@ -218,7 +251,10 @@ export function Navigation() {
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-woodAccent/35 text-woodAccent hover:bg-woodAccent/10"
+            className={cn(
+              'inline-flex h-10 w-10 items-center justify-center rounded-full border border-woodAccent/35 hover:bg-woodAccent/10',
+              isTransparentNav ? 'text-white' : 'text-woodAccent'
+            )}
             onClick={toggleTheme}
             aria-label="Toggle theme"
           >
@@ -228,7 +264,10 @@ export function Navigation() {
           {!loading && !isAuthenticated && (
             <Link
               href="/login"
-              className="ml-2 inline-flex items-center gap-2 rounded-sm border border-woodAccent/35 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.12em] text-woodAccent hover:bg-tableBrown hover:text-white"
+              className={cn(
+                'ml-2 inline-flex items-center gap-2 rounded-sm border border-woodAccent/35 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.12em] hover:bg-tableBrown hover:text-white',
+                isTransparentNav ? 'text-white' : 'text-woodAccent'
+              )}
             >
               <UserRound size={14} />
               Sign In
@@ -246,7 +285,13 @@ export function Navigation() {
                 }}
                 aria-label="Account menu"
               >
-                {profileInitials}
+                {user?.profile_image_url ? (
+                  <span className="relative block h-full w-full overflow-hidden rounded-full">
+                    <Image src={user.profile_image_url} alt="Profile avatar" fill className="object-cover" sizes="40px" />
+                  </span>
+                ) : (
+                  profileInitials
+                )}
               </button>
               <div
                 className={cn(
@@ -259,6 +304,14 @@ export function Navigation() {
                   <p className="text-xs text-muted">{user?.email}</p>
                 </div>
                 <div className="py-2">
+                  <Link
+                    href="/profile"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 hover:bg-woodAccent/10 hover:text-ink"
+                  >
+                    <UserRound size={15} />
+                    My Profile
+                  </Link>
                   {!user?.is_staff && (
                     <Link
                       href="/my-reservations"
@@ -295,7 +348,10 @@ export function Navigation() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-woodAccent/35 text-woodAccent md:hidden"
+          className={cn(
+            'inline-flex h-10 w-10 items-center justify-center rounded-full border border-woodAccent/35 md:hidden',
+            isTransparentNav ? 'text-white' : 'text-woodAccent'
+          )}
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           onClick={() => setMobileOpen((current) => !current)}
         >

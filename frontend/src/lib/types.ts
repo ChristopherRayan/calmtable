@@ -8,6 +8,7 @@ export interface MenuItem {
   price: string;
   category: MenuCategory;
   image_url: string;
+  image_file?: string;
   is_available: boolean;
   is_featured: boolean;
   dietary_tags: string[];
@@ -55,6 +56,8 @@ export interface AuthUser {
   email: string;
   first_name: string;
   last_name: string;
+  phone: string;
+  profile_image_url: string;
   is_staff: boolean;
   role: 'admin' | 'customer';
 }
@@ -76,6 +79,14 @@ export interface RegisterPayload {
 export interface LoginPayload {
   email: string;
   password: string;
+}
+
+export interface ProfileUpdatePayload {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  profile_image?: File | null;
+  clear_profile_image?: boolean;
 }
 
 export interface Review {

@@ -88,6 +88,8 @@ export function getStoredUser(): AuthUser | null {
       email: String(parsed.email ?? ''),
       first_name: String(parsed.first_name ?? ''),
       last_name: String(parsed.last_name ?? ''),
+      phone: String(parsed.phone ?? ''),
+      profile_image_url: String(parsed.profile_image_url ?? ''),
       is_staff: Boolean(parsed.is_staff),
       role,
     };

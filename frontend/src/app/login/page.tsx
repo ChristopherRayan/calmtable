@@ -279,14 +279,11 @@ export default function LoginPage() {
           <p className="text-sm text-tableBrown/85">
             Sign in once and Calm Table routes you according to your credentials.
           </p>
-          <div className="rounded-2xl border border-woodAccent/60 bg-warmGray p-4 text-sm text-tableBrown/90">
-            <p className="font-semibold uppercase tracking-wide">Administrator</p>
-            <p className="mt-1">Email/Username: <strong>admin@calmtable.mw</strong></p>
-            <p>Password: <strong>password123</strong></p>
-          </div>
-          <p className="text-xs text-tableBrown/75">
-            Customer accounts are auto-signed-in after registration and can immediately book, order, and review.
+          <p className="rounded-2xl border border-woodAccent/60 bg-warmGray p-4 text-sm text-tableBrown/90">
+            Customer accounts are auto-signed-in after registration and can immediately book, order, checkout, and
+            review.
           </p>
+          <p className="text-xs text-tableBrown/75">Administrator access is available through the secure Django admin portal.</p>
           <Link
             href="/admin/login/"
             className="inline-flex rounded-full border border-woodAccent bg-cream px-4 py-2 text-xs font-semibold uppercase tracking-wide text-tableBrown hover:bg-warmGray"

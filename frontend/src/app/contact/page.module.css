@@ -1,0 +1,363 @@
+/* Premium contact page styles for The CalmTable, matching the requested dark/light aesthetic. */
+.pageWrap {
+  padding: 2rem 0 0;
+  background: rgb(var(--cream-rgb));
+  color: rgb(var(--ink-rgb));
+}
+
+.sectionHeader {
+  text-align: center;
+  padding: 0 1rem 3rem;
+}
+
+.sectionEyebrow {
+  color: rgb(var(--wood-accent-rgb));
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.sectionTitle {
+  margin-top: 0.85rem;
+  color: rgb(var(--ink-rgb));
+  font-family: var(--font-playfair), serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.15;
+}
+
+.sectionTitle em {
+  color: rgb(var(--wood-accent-rgb));
+  font-style: italic;
+}
+
+.contactGrid {
+  display: grid;
+  gap: 1.2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  align-items: start;
+}
+
+.formCard {
+  background: rgb(var(--warm-gray-rgb));
+  border: 1px solid rgb(var(--wood-accent-rgb) / 0.2);
+  padding: 1.5rem 1.1rem;
+}
+
+.formRow {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.formFieldFull {
+  margin-bottom: 1rem;
+}
+
+.formLabel {
+  color: rgb(var(--muted-rgb));
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.req {
+  color: rgb(var(--wood-accent-rgb));
+}
+
+.formInput,
+.formTextarea {
+  width: 100%;
+  border: 1px solid rgb(var(--wood-accent-rgb) / 0.2);
+  background: rgb(var(--cream-rgb));
+  color: rgb(var(--ink-rgb));
+  padding: 0.75rem 0.9rem;
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.formInput:focus,
+.formTextarea:focus {
+  border-color: rgb(var(--wood-accent-rgb));
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.formSubmit {
+  border: 0;
+  border-radius: 2px;
+  padding: 0.9rem 1.7rem;
+  background: rgb(var(--table-brown-rgb));
+  color: #fdfbf7;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.formSubmit:hover {
+  background: rgb(var(--table-brown-light-rgb));
+}
+
+.formSubmit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.formSuccess {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 2rem 0;
+}
+
+.successIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(76, 120, 60, 0.2);
+  border: 1px solid rgba(76, 120, 60, 0.4);
+  font-size: 1.6rem;
+}
+
+.formSuccess p {
+  color: rgb(var(--ink-rgb));
+  font-family: var(--font-playfair), serif;
+  font-size: 1.45rem;
+}
+
+.formSuccess span {
+  color: rgb(var(--muted-rgb));
+  max-width: 290px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.infoCard {
+  background: rgb(var(--table-brown-rgb));
+  color: rgba(253, 251, 247, 0.92);
+  padding: 1.8rem 1.3rem;
+}
+
+.infoSection {
+  margin-bottom: 1.4rem;
+}
+
+.infoSection:last-child {
+  margin-bottom: 0;
+}
+
+.infoSectionTitle {
+  color: #fdfbf7;
+  font-family: var(--font-playfair), serif;
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.infoLine {
+  color: rgba(253, 251, 247, 0.74);
+  font-size: 0.78rem;
+  line-height: 1.8;
+}
+
+.infoLine strong {
+  color: rgba(253, 251, 247, 0.62);
+  font-weight: 500;
+}
+
+.infoDivider {
+  height: 1px;
+  background: rgba(253, 251, 247, 0.15);
+  margin: 1.3rem 0;
+}
+
+.hoursRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(253, 251, 247, 0.1);
+  font-size: 0.74rem;
+  color: rgba(253, 251, 247, 0.75);
+}
+
+.hoursRow:last-child {
+  border-bottom: none;
+}
+
+.day {
+  color: rgba(253, 251, 247, 0.54);
+}
+
+.closed {
+  color: rgba(224, 112, 101, 0.88);
+}
+
+.socialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.socialIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #fdfbf7;
+  background: rgba(253, 251, 247, 0.15);
+  border: 1px solid rgba(253, 251, 247, 0.2);
+}
+
+.socialIcon:hover {
+  background: rgba(253, 251, 247, 0.28);
+}
+
+.mapSection {
+  margin-top: 3.2rem;
+  height: 360px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mapSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 2;
+  background: linear-gradient(to right, transparent, rgb(var(--wood-accent-rgb)), transparent);
+}
+
+.mapSection iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  filter: grayscale(0.35) sepia(0.2);
+}
+
+.mapLabel {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 1.4rem;
+  background: rgb(var(--table-brown-rgb));
+  color: #fdfbf7;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 0.7rem 1.1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.footer {
+  border-top: 1px solid rgb(var(--wood-accent-rgb) / 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.4rem 1rem 1.8rem;
+}
+
+.footerCopy {
+  color: rgb(var(--muted-rgb));
+  text-align: center;
+  font-size: 0.67rem;
+  letter-spacing: 0.1em;
+}
+
+.footerSocials {
+  display: flex;
+  gap: 1rem;
+  color: rgb(var(--wood-accent-rgb) / 0.6);
+}
+
+@media (min-width: 768px) {
+  .sectionHeader,
+  .contactGrid,
+  .footer {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .formRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .footerCopy {
+    text-align: left;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sectionHeader,
+  .contactGrid,
+  .footer {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+
+  .contactGrid {
+    grid-template-columns: 1fr 340px;
+  }
+
+  .formCard {
+    padding: 2.4rem 2.5rem 2.6rem;
+  }
+
+  .infoCard {
+    position: sticky;
+    top: 100px;
+    padding: 2.2rem 2rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .sectionHeader,
+  .contactGrid,
+  .footer {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .mapSection {
+    height: 260px;
+  }
+
+  .mapLabel {
+    width: calc(100% - 2rem);
+    text-align: center;
+    white-space: normal;
+  }
+}

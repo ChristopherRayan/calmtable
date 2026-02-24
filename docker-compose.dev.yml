@@ -5,6 +5,7 @@ services:
     volumes:
       - ./backend:/app
       - backend-static:/app/staticfiles
+      - backend-media:/app/media
     environment:
       DEBUG: 'True'
       USE_SQLITE: 'False'

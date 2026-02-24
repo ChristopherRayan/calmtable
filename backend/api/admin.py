@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib import admin
 
-from .models import MenuItem, Order, OrderItem, Reservation, Review
+from .models import MenuItem, Order, OrderItem, Reservation, Review, UserProfile
 
 
 class MenuItemAdminForm(forms.ModelForm):
@@ -22,6 +22,8 @@ class MenuItemAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         existing_tags = self.instance.dietary_tags if self.instance and self.instance.pk else []
         self.fields["dietary_tags_text"].initial = ",".join(existing_tags)
+        self.fields["image_url"].help_text = "Optional external image URL."
+        self.fields["image_file"].help_text = "Optional direct upload from your device."
 
     def clean_dietary_tags_text(self):
         value = self.cleaned_data.get("dietary_tags_text", "")
@@ -37,10 +39,14 @@ class MenuItemAdmin(admin.ModelAdmin):
     """Admin table for menu items and availability controls."""
 
     form = MenuItemAdminForm
-    list_display = ("name", "category", "price", "is_available", "is_featured")
+    list_display = ("name", "category", "price", "is_available", "is_featured", "has_uploaded_image")
     list_filter = ("category", "is_available", "is_featured")
     search_fields = ("name", "description")
     readonly_fields = ("created_at", "updated_at")
+
+    @admin.display(boolean=True, description="Uploaded image")
+    def has_uploaded_image(self, obj: MenuItem) -> bool:
+        return bool(obj.image_file)
 
 
 @admin.register(Reservation)
@@ -109,3 +115,16 @@ class OrderAdmin(admin.ModelAdmin):
     @admin.action(description="Mark selected orders as cancelled")
     def mark_cancelled(self, request, queryset):
         queryset.update(status=Order.Status.CANCELLED)
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    """Admin table for user profile phone numbers and avatars."""
+
+    list_display = ("user", "phone", "has_avatar", "updated_at")
+    search_fields = ("user__username", "user__email", "phone")
+    readonly_fields = ("created_at", "updated_at")
+
+    @admin.display(boolean=True, description="Avatar")
+    def has_avatar(self, obj: UserProfile) -> bool:
+        return bool(obj.profile_image)

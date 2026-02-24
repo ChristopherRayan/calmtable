@@ -9,6 +9,7 @@ import type {
   MenuItem,
   Order,
   OrderCreatePayload,
+  ProfileUpdatePayload,
   RegisterPayload,
   Reservation,
   ReservationCreatePayload,
@@ -75,6 +76,31 @@ export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
 
 export async function fetchCurrentUser(): Promise<AuthUser> {
   const response = await api.get<AuthUser>('/auth/me/');
+  return response.data;
+}
+
+export async function updateCurrentUserProfile(payload: ProfileUpdatePayload): Promise<AuthUser> {
+  const formData = new FormData();
+
+  if (typeof payload.first_name === 'string') {
+    formData.append('first_name', payload.first_name);
+  }
+  if (typeof payload.last_name === 'string') {
+    formData.append('last_name', payload.last_name);
+  }
+  if (typeof payload.phone === 'string') {
+    formData.append('phone', payload.phone);
+  }
+  if (payload.clear_profile_image) {
+    formData.append('clear_profile_image', 'true');
+  }
+  if (payload.profile_image) {
+    formData.append('profile_image', payload.profile_image);
+  }
+
+  const response = await api.patch<AuthUser>('/auth/me/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 }
 

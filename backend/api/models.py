@@ -27,6 +27,7 @@ class MenuItem(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     category = models.CharField(max_length=20, choices=Category.choices)
     image_url = models.URLField(blank=True)
+    image_file = models.ImageField(upload_to="menu_items/", blank=True, null=True)
     is_available = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     dietary_tags = models.JSONField(default=list, blank=True)
@@ -38,6 +39,33 @@ class MenuItem(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def preferred_image_url(self) -> str:
+        """Return uploaded image URL first, with URL-field fallback."""
+        if self.image_file:
+            return self.image_file.url
+        return self.image_url
+
+
+class UserProfile(models.Model):
+    """Extended profile metadata for customer and staff users."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile",
+    )
+    phone = models.CharField(max_length=30, blank=True)
+    profile_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("user_id",)
+
+    def __str__(self) -> str:
+        return f"Profile<{self.user_id}>"
 
 
 class Reservation(models.Model):
