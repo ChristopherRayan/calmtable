@@ -14,28 +14,32 @@ import {
   X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import { useAuth } from '@/components/auth-provider';
 import { useCart } from '@/components/cart-provider';
 import { useTheme } from '@/components/theme-provider';
 import { shouldSkipImageOptimization } from '@/lib/image';
+import {
+  fetchAdminNotifications,
+  markAdminNotificationRead,
+  markAllAdminNotificationsRead,
+} from '@/lib/services';
+import type { AdminNotification } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/menu', label: 'Menu' },
+  { href: '/about', label: 'About Us' },
+  { href: '/members', label: 'Members' },
   { href: '/book', label: 'Book a Table' },
   { href: '/contact', label: 'Contact' },
-];
-
-const defaultNotifications = [
-  { id: 1, message: 'Reservation updates will appear here.', time: 'Now', unread: true },
-  { id: 2, message: 'Track your latest order status in one place.', time: 'Today', unread: true },
 ];
 
 function initialsFromUserName(name: string) {
@@ -54,7 +58,8 @@ export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState(defaultNotifications);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   const profileWrapRef = useRef<HTMLDivElement | null>(null);
   const bellWrapRef = useRef<HTMLDivElement | null>(null);
@@ -65,7 +70,7 @@ export function Navigation() {
   const isHome = pathname === '/';
   const isTransparentNav = isHome && !isScrolled;
 
-  const unreadCount = notifications.filter((notification) => notification.unread).length;
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length;
   const profileName = useMemo(() => {
     if (!user) {
       return '';
@@ -107,12 +112,55 @@ export function Navigation() {
     return pathname.startsWith(path);
   }
 
-  function markNotificationsRead() {
-    setNotifications((current) => current.map((notification) => ({ ...notification, unread: false })));
+  function parseNotificationDetail(payload: Record<string, unknown>) {
+    const customerName = typeof payload.customer_name === 'string' ? payload.customer_name : '';
+    const customerEmail = typeof payload.customer_email === 'string' ? payload.customer_email : '';
+    const customerPhone = typeof payload.customer_phone === 'string' ? payload.customer_phone : '';
+    const totalAmount = typeof payload.total_amount === 'string' ? payload.total_amount : '';
+
+    const summary = [customerName, customerEmail, customerPhone].filter(Boolean).join(' | ');
+    const total = totalAmount ? `MK ${Number(totalAmount).toLocaleString()}` : '';
+    return [summary, total].filter(Boolean).join(' | ');
   }
 
-  function clearNotifications() {
-    setNotifications([]);
+  const loadAdminNotifications = useCallback(async () => {
+    if (!isAuthenticated || !user?.is_staff) {
+      setNotifications([]);
+      return;
+    }
+    try {
+      setLoadingNotifications(true);
+      const data = await fetchAdminNotifications();
+      setNotifications(data);
+    } catch (_error) {
+      setNotifications([]);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }, [isAuthenticated, user?.is_staff]);
+
+  async function markNotificationsRead() {
+    if (!isAuthenticated || !user?.is_staff) {
+      return;
+    }
+    try {
+      await markAllAdminNotificationsRead();
+      setNotifications((current) => current.map((notification) => ({ ...notification, is_read: true })));
+    } catch (_error) {
+      // No toast: this runs on panel open and should stay silent on transient network issues.
+    }
+  }
+
+  async function clearNotifications() {
+    if (!isAuthenticated || !user?.is_staff) {
+      return;
+    }
+    try {
+      await markAllAdminNotificationsRead();
+      setNotifications((current) => current.map((notification) => ({ ...notification, is_read: true })));
+    } catch (_error) {
+      toast.error('Unable to clear notifications right now.');
+    }
   }
 
   function handleOpenCart() {
@@ -141,6 +189,20 @@ export function Navigation() {
       toast.error(error instanceof Error ? error.message : 'Unable to sign out.');
     }
   }
+
+  useEffect(() => {
+    if (!isAuthenticated || !user?.is_staff) {
+      setNotifications([]);
+      return;
+    }
+
+    void loadAdminNotifications();
+    const timer = window.setInterval(() => {
+      void loadAdminNotifications();
+    }, 20000);
+
+    return () => window.clearInterval(timer);
+  }, [isAuthenticated, user?.is_staff, loadAdminNotifications]);
 
   return (
     <header
@@ -183,7 +245,7 @@ export function Navigation() {
         </ul>
 
         <div className="hidden items-center gap-1 md:flex">
-          {isAuthenticated && (
+          {isAuthenticated && user?.is_staff && (
             <div ref={bellWrapRef} className="relative">
               <button
                 type="button"
@@ -194,7 +256,7 @@ export function Navigation() {
                 onClick={() => {
                   setNotificationsOpen((current) => !current);
                   setProfileOpen(false);
-                  markNotificationsRead();
+                  void markNotificationsRead();
                 }}
                 aria-label="Notifications"
               >
@@ -212,20 +274,44 @@ export function Navigation() {
                   <button
                     type="button"
                     className="text-[10px] uppercase tracking-[0.08em] text-muted hover:text-woodAccent"
-                    onClick={clearNotifications}
+                    onClick={() => void clearNotifications()}
                   >
                     Clear all
                   </button>
                 </div>
                 <div className="max-h-72 overflow-y-auto">
-                  {notifications.length === 0 ? (
+                  {loadingNotifications ? (
+                    <p className="px-4 py-8 text-center text-xs text-muted">Loading notifications...</p>
+                  ) : notifications.length === 0 ? (
                     <p className="px-4 py-8 text-center text-xs text-muted">No notifications yet.</p>
                   ) : (
                     notifications.map((notification) => (
-                      <div key={notification.id} className="border-b border-woodAccent/15 px-4 py-3 last:border-b-0">
-                        <p className="text-sm text-ink">{notification.message}</p>
-                        <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-muted">{notification.time}</p>
-                      </div>
+                      <button
+                        key={notification.id}
+                        type="button"
+                        className={cn(
+                          'block w-full border-b border-woodAccent/15 px-4 py-3 text-left last:border-b-0 hover:bg-woodAccent/8',
+                          !notification.is_read && 'bg-woodAccent/10'
+                        )}
+                        onClick={() => {
+                          void markAdminNotificationRead(notification.id).then((updated) => {
+                            setNotifications((current) =>
+                              current.map((item) => (item.id === updated.id ? updated : item))
+                            );
+                          });
+                        }}
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-tableBrown">
+                          {notification.title}
+                        </p>
+                        <p className="mt-1 text-sm text-ink">{notification.message}</p>
+                        <p className="mt-1 text-[11px] text-muted">
+                          {parseNotificationDetail(notification.payload)}
+                        </p>
+                        <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-muted">
+                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                        </p>
+                      </button>
                     ))
                   )}
                 </div>

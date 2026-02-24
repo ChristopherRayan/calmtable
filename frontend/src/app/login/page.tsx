@@ -2,7 +2,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -15,7 +14,7 @@ import { Card } from '@/components/card';
 import { SectionHeading } from '@/components/section-heading';
 
 const loginSchema = z.object({
-  email: z.string().trim().email('Enter a valid email address.'),
+  email: z.string().trim().min(1, 'Email or username is required.'),
   password: z.string().min(1, 'Password is required.'),
 });
 
@@ -135,13 +134,13 @@ export default function LoginPage() {
       <SectionHeading
         eyebrow="Account"
         title="Welcome Back"
-        description="One premium access point for customers and administrators."
+        description="Sign in or create an account to book, order, and manage your CalmTable experience."
       />
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-6 grid gap-5 rounded-[2rem] border border-woodAccent/40 bg-gradient-to-br from-warmGray/80 via-warmGray/95 to-cream/95 p-4 shadow-soft lg:grid-cols-[1.15fr_0.85fr] lg:p-8"
+        className="mx-auto mt-6 max-w-3xl rounded-[2rem] border border-woodAccent/40 bg-gradient-to-br from-warmGray/80 via-warmGray/95 to-cream/95 p-4 shadow-soft lg:p-8"
       >
         <Card elevated className="space-y-6 border-woodAccent/25 bg-warmGray/95">
           <div className="inline-flex rounded-full border border-woodAccent/60 bg-warmGray p-1">
@@ -171,11 +170,11 @@ export default function LoginPage() {
             <form className="space-y-4" onSubmit={onLoginSubmit}>
               <div className="space-y-1.5">
                 <label htmlFor="login-email" className="text-sm font-medium text-tableBrown">
-                  Email
+                  Email or Username
                 </label>
                 <input
                   id="login-email"
-                  type="email"
+                  type="text"
                   {...registerLoginField('email')}
                   className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
                 />
@@ -272,25 +271,6 @@ export default function LoginPage() {
               </Button>
             </form>
           )}
-        </Card>
-
-        <Card elevated className="space-y-4 border-woodAccent/25 bg-warmGray/95">
-          <h2 className="font-heading text-3xl text-tableBrown">Role-Aware Access</h2>
-          <p className="text-sm text-tableBrown/85">
-            Sign in once and Calm Table routes you according to your credentials.
-          </p>
-          <p className="rounded-2xl border border-woodAccent/60 bg-warmGray p-4 text-sm text-tableBrown/90">
-            Customer accounts are auto-signed-in after registration and can immediately book, order, checkout, and
-            review.
-          </p>
-          <p className="text-xs text-tableBrown/75">Administrator access is available through the secure Django admin portal.</p>
-          <Link
-            href="/admin/login/"
-            className="inline-flex rounded-full border border-woodAccent bg-cream px-4 py-2 text-xs font-semibold uppercase tracking-wide text-tableBrown hover:bg-warmGray"
-            aria-label="Open Django admin page"
-          >
-            Open Django Admin
-          </Link>
         </Card>
       </motion.div>
     </div>

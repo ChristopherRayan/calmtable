@@ -2,6 +2,7 @@
 import api from '@/lib/api';
 import type {
   AnalyticsPayload,
+  AdminNotification,
   AuthResponse,
   AuthUser,
   AvailableSlotsResponse,
@@ -217,6 +218,21 @@ export async function createOrder(payload: OrderCreatePayload): Promise<Order> {
 export async function fetchOrders(): Promise<Order[]> {
   const response = await api.get<Order[]>('/orders/');
   return response.data;
+}
+
+export async function fetchAdminNotifications(): Promise<AdminNotification[]> {
+  const response = await api.get<AdminNotification[]>('/notifications/');
+  return response.data;
+}
+
+export async function markAdminNotificationRead(notificationId: number): Promise<AdminNotification> {
+  const response = await api.post<AdminNotification>(`/notifications/${notificationId}/mark-read/`);
+  return response.data;
+}
+
+export async function markAllAdminNotificationsRead(): Promise<number> {
+  const response = await api.post<{ updated: number }>('/notifications/mark-all-read/');
+  return response.data.updated;
 }
 
 export async function fetchAnalytics(): Promise<AnalyticsPayload> {

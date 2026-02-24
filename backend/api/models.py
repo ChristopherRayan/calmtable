@@ -244,6 +244,37 @@ class Order(models.Model):
         return f"Order<{self.pk}> {self.email}"
 
 
+class AdminNotification(models.Model):
+    """Staff notification payload for operational events like new orders."""
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="admin_notifications",
+    )
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_notifications",
+    )
+    title = models.CharField(max_length=160)
+    message = models.TextField()
+    payload = models.JSONField(default=dict, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["recipient", "is_read", "created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"AdminNotification<{self.id}:{self.recipient_id}>"
+
+
 class OrderItem(models.Model):
     """A single purchasable item attached to an order."""
 

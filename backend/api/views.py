@@ -21,8 +21,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .filters import MenuItemFilter
-from .models import MenuItem, Order, OrderItem, Reservation, Review
+from .models import AdminNotification, MenuItem, Order, OrderItem, Reservation, Review
 from .serializers import (
+    AdminNotificationSerializer,
     LoginSerializer,
     MenuItemSerializer,
     OrderCreateSerializer,
@@ -35,6 +36,65 @@ from .serializers import (
 )
 
 User = get_user_model()
+
+
+def build_customer_display_name(user):
+    """Return customer-facing display name from user profile data."""
+    full_name = f"{user.first_name} {user.last_name}".strip()
+    return full_name or user.username or user.email
+
+
+def create_admin_order_notifications(order: Order):
+    """Create one notification per active staff user when a customer places an order."""
+    customer = order.user
+    if not customer:
+        return
+
+    profile = getattr(customer, "profile", None)
+    customer_phone = profile.phone if profile else ""
+    customer_name = build_customer_display_name(customer)
+    items = list(order.items.select_related("menu_item").all())
+    items_preview = ", ".join(f"{item.quantity}x {item.menu_item.name}" for item in items[:5])
+    if len(items) > 5:
+        items_preview = f"{items_preview}, +{len(items) - 5} more"
+
+    payload = {
+        "order_id": order.id,
+        "customer_name": customer_name,
+        "customer_email": order.email,
+        "customer_phone": customer_phone,
+        "total_amount": str(order.total_amount),
+        "status": order.status,
+        "items": [
+            {
+                "menu_item_id": item.menu_item_id,
+                "menu_item_name": item.menu_item.name,
+                "quantity": item.quantity,
+                "line_total": str(item.line_total),
+            }
+            for item in items
+        ],
+    }
+
+    message = (
+        f"Order #{order.id} by {customer_name} ({order.email})"
+        f"{f', {customer_phone}' if customer_phone else ''}. "
+        f"Total: {order.total_amount}. Items: {items_preview or 'N/A'}."
+    )
+
+    admins = User.objects.filter(is_staff=True, is_active=True).only("id")
+    notifications = [
+        AdminNotification(
+            recipient=admin_user,
+            order=order,
+            title="New Customer Order",
+            message=message,
+            payload=payload,
+        )
+        for admin_user in admins
+    ]
+    if notifications:
+        AdminNotification.objects.bulk_create(notifications)
 
 
 class IsOwnerOrStaff(permissions.BasePermission):
@@ -343,9 +403,36 @@ class OrderViewSet(
         else:
             raise ValidationError("Stripe is not configured for this environment.")
 
+        create_admin_order_notifications(order)
         response_data = OrderSerializer(order).data
         response_data["client_secret"] = client_secret
         return Response(response_data, status=status.HTTP_201_CREATED)
+
+
+class AdminNotificationViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Staff-only notification feed and state updates."""
+
+    serializer_class = AdminNotificationSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_queryset(self):
+        return AdminNotification.objects.filter(recipient=self.request.user)
+
+    @action(detail=True, methods=["post"], url_path="mark-read")
+    def mark_read(self, request, pk=None):
+        notification = self.get_object()
+        if not notification.is_read:
+            notification.is_read = True
+            notification.save(update_fields=["is_read"])
+        return Response(self.get_serializer(notification).data)
+
+    @action(detail=False, methods=["post"], url_path="mark-all-read")
+    def mark_all_read(self, request):
+        updated = self.get_queryset().filter(is_read=False).update(is_read=True)
+        return Response({"updated": updated})
 
 
 class AnalyticsAPIView(APIView):

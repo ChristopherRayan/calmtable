@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
-from .models import MenuItem, Order, OrderItem, Reservation, Review, UserProfile
+from .models import AdminNotification, MenuItem, Order, OrderItem, Reservation, Review, UserProfile
 
 User = get_user_model()
 
@@ -65,14 +65,21 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     """Serializer for JWT login credentials."""
 
-    email = serializers.EmailField()
+    email = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        email = attrs["email"].strip().lower()
+        identifier = attrs["email"].strip()
         password = attrs["password"]
 
-        user = User.objects.filter(email__iexact=email).first()
+        if not identifier:
+            raise serializers.ValidationError("Email or username is required.")
+
+        if "@" in identifier:
+            user = User.objects.filter(email__iexact=identifier.lower()).first()
+        else:
+            user = User.objects.filter(username__iexact=identifier).first()
+
         if not user:
             raise serializers.ValidationError("Invalid email or password.")
 
@@ -86,6 +93,14 @@ class LoginSerializer(serializers.Serializer):
 
         attrs["user"] = authenticated_user
         return attrs
+
+
+class AdminNotificationSerializer(serializers.ModelSerializer):
+    """Serializer for staff notifications feed."""
+
+    class Meta:
+        model = AdminNotification
+        fields = ("id", "title", "message", "payload", "is_read", "created_at")
 
 
 class UserProfileUpdateSerializer(serializers.Serializer):

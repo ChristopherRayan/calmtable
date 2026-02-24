@@ -155,3 +155,12 @@ export interface AnalyticsPayload {
   reservation_volume: AnalyticsReservationPoint[];
   dish_volume: AnalyticsDishVolume[];
 }
+
+export interface AdminNotification {
+  id: number;
+  title: string;
+  message: string;
+  payload: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
+}

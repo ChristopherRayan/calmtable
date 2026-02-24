@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
+    AdminNotificationViewSet,
     AnalyticsAPIView,
     AvailableSlotsAPIView,
     LoginAPIView,
@@ -22,6 +23,7 @@ router.register("menu", MenuItemViewSet, basename="menu")
 router.register("reservations", ReservationViewSet, basename="reservation")
 router.register("reviews", ReviewViewSet, basename="review")
 router.register("orders", OrderViewSet, basename="order")
+router.register("notifications", AdminNotificationViewSet, basename="admin-notification")
 
 urlpatterns = [
     path("", include(router.urls)),
