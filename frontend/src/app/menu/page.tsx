@@ -1,278 +1,352 @@
-// Menu gallery page with category tabs, dietary filtering, and loading states.
+// Premium menu gallery page with featured dish, category rail, and cart-ready cards.
 'use client';
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowRight, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 
+import { FloatingReservationWidget } from '@/components/floating-reservation-widget';
 import { useAuth } from '@/components/auth-provider';
-import { Badge } from '@/components/badge';
-import { Button } from '@/components/button';
-import { Card } from '@/components/card';
 import { useCart } from '@/components/cart-provider';
-import { MenuDishCard } from '@/components/menu-dish-card';
-import { SectionHeading } from '@/components/section-heading';
-import { SkeletonCard } from '@/components/skeleton-card';
-import { StarRatingInput } from '@/components/star-rating';
-import { createReview, fetchMenuItems } from '@/lib/services';
-import type { MenuCategory, MenuItem } from '@/lib/types';
+import { fetchMenuItems } from '@/lib/services';
+import { formatKwacha } from '@/lib/currency';
+import type { MenuItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-type CategoryFilter = 'all' | MenuCategory;
+import styles from './page.module.css';
 
-const categoryFilters: Array<{ label: string; value: CategoryFilter }> = [
+type DisplayCategory = 'all' | 'starch' | 'nsima' | 'snacks' | 'beverages' | 'extras';
+
+const categoryTabs: Array<{ label: string; value: DisplayCategory }> = [
   { label: 'All', value: 'all' },
-  { label: 'Starters', value: 'starters' },
-  { label: 'Mains', value: 'mains' },
-  { label: 'Desserts', value: 'desserts' },
-  { label: 'Drinks', value: 'drinks' },
+  { label: 'Starch Meals', value: 'starch' },
+  { label: 'Nsima & Rice', value: 'nsima' },
+  { label: 'Snacks', value: 'snacks' },
+  { label: 'Beverages', value: 'beverages' },
+  { label: 'Extras', value: 'extras' },
 ];
 
-const dietaryOptions = ['vegan', 'vegetarian', 'gluten-free'];
+const fallbackImages: Array<{ keywords: string[]; url: string }> = [
+  {
+    keywords: ['chambo', 'butterfish', 'fish'],
+    url: 'https://images.unsplash.com/photo-1519984388953-d2406bc725e1?w=1400&q=80',
+  },
+  {
+    keywords: ['goat', 'beef', 'chicken', 'stew', 'braii'],
+    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400&q=80',
+  },
+  {
+    keywords: ['chapati', 'samoosa', 'doughnut', 'wrap'],
+    url: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=1400&q=80',
+  },
+  {
+    keywords: ['tea', 'coffee', 'milk', 'water', 'drink', 'ice-cream'],
+    url: 'https://images.unsplash.com/photo-1543253687-c931c8e01820?w=1400&q=80',
+  },
+];
+
+function normalize(value: string) {
+  return value.toLowerCase();
+}
+
+function resolveDisplayCategory(item: MenuItem): DisplayCategory {
+  const normalizedName = normalize(item.name);
+  const normalizedDescription = normalize(item.description);
+  const combined = `${normalizedName} ${normalizedDescription}`;
+
+  if (item.category === 'drinks') {
+    return 'beverages';
+  }
+
+  if (
+    combined.includes('chapati') ||
+    combined.includes('samoosa') ||
+    combined.includes('doughnut') ||
+    combined.includes('wrap')
+  ) {
+    return 'snacks';
+  }
+
+  if (combined.includes('beans') || combined.includes('masamba') || combined.includes('veggies')) {
+    return 'nsima';
+  }
+
+  if (
+    combined.includes('extra relish') ||
+    normalizedName === 'nsima (piece)' ||
+    normalizedName === 'rice' ||
+    normalizedName === 'chips' ||
+    normalizedName === 'boiled irish'
+  ) {
+    return 'extras';
+  }
+
+  if (item.category === 'desserts' || combined.includes('ice-cream')) {
+    return 'beverages';
+  }
+
+  return 'starch';
+}
+
+function resolveImageUrl(item: MenuItem) {
+  if (item.image_url) {
+    return item.image_url;
+  }
+
+  const haystack = normalize(`${item.name} ${item.description}`);
+  const fallback = fallbackImages.find((entry) =>
+    entry.keywords.some((keyword) => haystack.includes(keyword))
+  );
+  return fallback?.url ?? '';
+}
+
+function buildBadges(item: MenuItem) {
+  const badges: Array<{ className: string; label: string }> = [];
+  const tags = item.dietary_tags.map((tag) => normalize(tag));
+
+  if (tags.includes('vegan') || tags.includes('vegetarian')) {
+    badges.push({ className: styles.badgeVegan, label: tags.includes('vegan') ? 'Vegan' : 'Vegetarian' });
+  }
+  if (tags.includes('gluten-free')) {
+    badges.push({ className: styles.badgeGf, label: 'Gluten-Free' });
+  }
+  if (tags.includes('spicy')) {
+    badges.push({ className: styles.badgeSpicy, label: 'Spicy' });
+  }
+
+  if (badges.length === 0 && normalize(item.name).includes('extra relish')) {
+    badges.push({ className: styles.badgeGf, label: 'Extra Relish' });
+  }
+
+  if (badges.length === 0 && item.ordered_count > 4) {
+    badges.push({ className: styles.badgeSpicy, label: 'Best Seller' });
+  }
+
+  return badges;
+}
 
 export default function MenuPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
-  const { addItem, setIsOpen } = useCart();
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
-  const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
-  const [reviewMenuItemId, setReviewMenuItemId] = useState<number | null>(null);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
+  const { addItem } = useCart();
+  const [activeCategory, setActiveCategory] = useState<DisplayCategory>('all');
+  const { items, loading: isLoading } = useMenuItems();
 
-  const loadMenuItems = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await fetchMenuItems({
-        category: activeCategory,
-        dietaryTags: selectedDietary,
-      });
-      setItems(data);
-      if (!reviewMenuItemId && data.length > 0) {
-        setReviewMenuItemId(data[0].id);
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load menu.');
-    } finally {
-      setLoading(false);
+  const featuredItem = useMemo(() => {
+    return items.find((item) => item.is_featured) ?? items[0] ?? null;
+  }, [items]);
+
+  const visibleItems = useMemo(() => {
+    if (activeCategory === 'all') {
+      return items;
     }
-  }, [activeCategory, reviewMenuItemId, selectedDietary]);
+    return items.filter((item) => resolveDisplayCategory(item) === activeCategory);
+  }, [activeCategory, items]);
 
-  useEffect(() => {
-    void loadMenuItems();
-  }, [loadMenuItems]);
-
-  const emptyMessage = useMemo(() => {
-    if (selectedDietary.length > 0) {
-      return 'No dishes match the selected dietary filters.';
-    }
-
-    if (activeCategory !== 'all') {
-      return 'No dishes are currently available in this category.';
-    }
-
-    return 'No menu items available right now.';
-  }, [activeCategory, selectedDietary]);
-  const canCustomerActions = Boolean(isAuthenticated && user && !user.is_staff);
-
-  function toggleDietary(tag: string) {
-    setSelectedDietary((current) =>
-      current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]
-    );
-  }
-
-  async function handleSubmitReview() {
-    if (!reviewMenuItemId) {
-      toast.error('Select a menu item first.');
-      return;
-    }
-    if (!reviewComment.trim()) {
-      toast.error('Please add a short review comment.');
+  function handleAddToCart(item: MenuItem) {
+    if (!isAuthenticated) {
+      toast.error('Sign in as a customer to place orders.');
+      router.push('/login?next=/menu');
       return;
     }
 
-    try {
-      setSubmittingReview(true);
-      await createReview({
-        menu_item: reviewMenuItemId,
-        rating: reviewRating,
-        comment: reviewComment.trim(),
-      });
-      setReviewComment('');
-      setReviewRating(5);
-      toast.success('Review submitted.');
-      await loadMenuItems();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to submit review.');
-    } finally {
-      setSubmittingReview(false);
+    if (user?.is_staff) {
+      toast.error('Staff accounts cannot checkout. Use a customer account.');
+      return;
     }
+
+    if (!item.is_available) {
+      toast.error('This dish is currently unavailable.');
+      return;
+    }
+
+    addItem(item);
+    toast.success(`${item.name} added to order.`);
   }
 
   return (
-    <div className="page-shell py-10">
-      <SectionHeading
-        eyebrow="Digital Menu"
-        title="Explore Our Signature Dishes"
-        description="Filter by course or dietary preferences to find the perfect dish for your table."
-      />
-
-      <div className="sticky top-20 z-30 mt-8 rounded-2xl border border-woodAccent/50 bg-cream/95 p-3 backdrop-blur">
-        <div className="flex flex-wrap items-center gap-2">
-          {categoryFilters.map((category) => (
-            <button
-              key={category.value}
-              type="button"
-              aria-label={`Filter menu by ${category.label}`}
-              className={cn(
-                'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide',
-                activeCategory === category.value
-                  ? 'bg-tableBrown text-white'
-                  : 'bg-warmGray text-tableBrown hover:bg-[#eadfce]'
+    <div className={styles.page}>
+      {featuredItem && (
+        <section className={styles.featuredWrap}>
+          <article className={styles.featuredCard}>
+            <div className={styles.featuredImageWrap}>
+              {resolveImageUrl(featuredItem) ? (
+                <Image
+                  src={resolveImageUrl(featuredItem)}
+                  alt={featuredItem.name}
+                  fill
+                  priority
+                  className={styles.cardImage}
+                  sizes="100vw"
+                />
+              ) : (
+                <div className={styles.cardPlaceholder}>
+                  <p className={styles.cardPlaceholderText}>Dish image managed in admin</p>
+                </div>
               )}
-              onClick={() => setActiveCategory(category.value)}
-            >
-              {category.label}
-            </button>
-          ))}
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {dietaryOptions.map((tag) => {
-            const isActive = selectedDietary.includes(tag);
-            return (
-              <button
-                key={tag}
-                type="button"
-                aria-label={`Toggle ${tag} dietary filter`}
-                onClick={() => toggleDietary(tag)}
-              >
-                <Badge tone={isActive ? 'accent' : 'outline'}>{tag}</Badge>
+            </div>
+            <div className={styles.featuredBody}>
+              <p className={styles.featuredEyebrow}>Chef&apos;s Signature</p>
+              <p className={styles.featuredName}>
+                {featuredItem.name}
+                <em>{formatKwacha(featuredItem.price)}</em>
+              </p>
+              <button type="button" className={styles.featuredCta} onClick={() => handleAddToCart(featuredItem)}>
+                Add Signature Dish
+                <ArrowRight size={14} />
               </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {loading && (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <SkeletonCard key={index} />
-          ))}
-        </div>
-      )}
-
-      {!loading && items.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-woodAccent/50 bg-warmGray p-8 text-center">
-          <p className="text-sm text-tableBrown">{emptyMessage}</p>
-        </div>
-      )}
-
-      {!loading && items.length > 0 && (
-        <motion.section
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {items.map((item) => (
-            <MenuDishCard
-              key={item.id}
-              item={item}
-              onAddToCart={(dish) => {
-                if (!isAuthenticated) {
-                  toast.error('Create an account or sign in to add items to cart.');
-                  router.push('/login?next=/menu');
-                  return;
-                }
-                if (user?.is_staff) {
-                  toast.error('Staff accounts cannot place customer orders.');
-                  return;
-                }
-                addItem(dish);
-                setIsOpen(true);
-                toast.success(`${dish.name} added to cart.`);
-              }}
-            />
-          ))}
-        </motion.section>
-      )}
-
-      {!isAuthenticated && !loading && items.length > 0 && (
-        <Card elevated className="mt-8 space-y-2">
-          <h2 className="font-heading text-2xl text-tableBrown">Customer Reviews</h2>
-          <p className="text-sm text-tableBrown/85">
-            Sign in as a customer to place bookings, checkout orders, and leave verified reviews.
-          </p>
-          <div>
-            <Link
-              href="/login?next=/menu"
-              className="inline-flex rounded-full bg-tableBrown px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-tableBrownLight"
-            >
-              Sign In to Continue
-            </Link>
-          </div>
-        </Card>
-      )}
-
-      {isAuthenticated && user?.is_staff && !loading && items.length > 0 && (
-        <Card elevated className="mt-8">
-          <p className="text-sm text-tableBrown/85">
-            Staff accounts cannot submit menu reviews. Use a customer account to review dishes.
-          </p>
-        </Card>
-      )}
-
-      {canCustomerActions && !loading && items.length > 0 && (
-        <Card elevated className="mt-8 space-y-4">
-          <h2 className="font-heading text-2xl text-tableBrown">Leave a Review</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label htmlFor="review-menu-item" className="text-sm font-medium text-tableBrown">
-                Menu Item
-              </label>
-              <select
-                id="review-menu-item"
-                value={reviewMenuItemId ?? ''}
-                onChange={(event) => setReviewMenuItemId(Number(event.target.value))}
-                className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
-              >
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
             </div>
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-tableBrown">Rating</p>
-              <div className="pt-2">
-                <StarRatingInput value={reviewRating} onChange={setReviewRating} />
-              </div>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <label htmlFor="review-comment" className="text-sm font-medium text-tableBrown">
-              Comment
-            </label>
-            <textarea
-              id="review-comment"
-              rows={4}
-              value={reviewComment}
-              onChange={(event) => setReviewComment(event.target.value)}
-              className="w-full rounded-xl border border-woodAccent bg-white px-3 py-2 text-sm text-tableBrown"
-              placeholder="Tell us about your dining experience."
-            />
-          </div>
-          <Button onClick={handleSubmitReview} disabled={submittingReview} aria-label="Submit review">
-            {submittingReview ? 'Submitting...' : 'Submit Review'}
-          </Button>
-        </Card>
+          </article>
+        </section>
       )}
+
+      <section className={styles.categoryBar}>
+        {categoryTabs.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            aria-label={`Filter by ${tab.label}`}
+            className={cn(
+              styles.categoryButton,
+              activeCategory === tab.value && styles.categoryButtonActive
+            )}
+            onClick={() => setActiveCategory(tab.value)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </section>
+
+      <section className={styles.menuSection}>
+        {isLoading && (
+          <div className={styles.menuGrid}>
+            {Array.from({ length: 9 }).map((_, index) => (
+              <div key={index} className={styles.skeletonCard} />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && visibleItems.length === 0 && (
+          <div className={styles.emptyState}>
+            No dishes currently available in this category.
+          </div>
+        )}
+
+        {!isLoading && visibleItems.length > 0 && (
+          <div className={styles.menuGrid}>
+            {visibleItems.map((item) => {
+              const resolvedImage = resolveImageUrl(item);
+              const badges = buildBadges(item);
+              return (
+                <article key={item.id} className={styles.menuCard}>
+                  <span className={styles.cardCorner} aria-hidden />
+                  <div className={styles.cardImageWrap}>
+                    {resolvedImage ? (
+                      <Image
+                        src={resolvedImage}
+                        alt={item.name}
+                        fill
+                        className={styles.cardImage}
+                        sizes="(max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className={styles.cardPlaceholder}>
+                        <p className={styles.cardPlaceholderText}>Image managed in admin</p>
+                      </div>
+                    )}
+                    {item.is_available ? (
+                      <button
+                        type="button"
+                        className={styles.addToCartButton}
+                        onClick={() => handleAddToCart(item)}
+                        aria-label={`Add ${item.name} to order`}
+                      >
+                        <Plus size={14} />
+                        Add to Order
+                      </button>
+                    ) : (
+                      <div className={styles.soldOut}>
+                        <span className={styles.soldOutText}>Sold Out</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={styles.cardBody}>
+                    {badges.length > 0 && (
+                      <div className={styles.badgeRow}>
+                        {badges.map((badge) => (
+                          <span key={`${item.id}-${badge.label}`} className={cn(styles.badge, badge.className)}>
+                            {badge.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className={styles.cardName}>{item.name}</p>
+                    <p className={styles.cardSub}>{item.description}</p>
+                    <div className={styles.cardFooter}>
+                      <span className={styles.cardPrice}>{formatKwacha(item.price)}</span>
+                      <button
+                        type="button"
+                        className={styles.cardLink}
+                        onClick={() => handleAddToCart(item)}
+                        aria-label={`Order ${item.name}`}
+                      >
+                        {item.is_available ? 'Order' : 'View Dish'}
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <footer className="page-shell border-t border-woodAccent/20 py-6">
+        <div className="flex flex-col gap-3 text-[11px] uppercase tracking-[0.1em] text-muted md:flex-row md:items-center md:justify-between">
+          <p>© 2026 The CalmTable. Dine with Dignity.</p>
+          <div className="flex gap-5 text-woodAccent/60">
+            <span>Instagram</span>
+            <span>Facebook</span>
+            <span>TikTok</span>
+          </div>
+        </div>
+      </footer>
+
+      <FloatingReservationWidget />
     </div>
   );
+}
+
+function useMenuItems() {
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        setLoading(true);
+        const data = await fetchMenuItems();
+        if (active) {
+          setItems(data);
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Failed to load menu.');
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return { items, loading };
 }

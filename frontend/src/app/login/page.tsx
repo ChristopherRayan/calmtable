@@ -141,9 +141,9 @@ export default function LoginPage() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-6 grid gap-5 rounded-[2rem] border border-woodAccent/60 bg-gradient-to-br from-[#fff8ef] via-[#f8eee3] to-[#efe3d6] p-4 shadow-soft lg:grid-cols-[1.15fr_0.85fr] lg:p-8"
+        className="mt-6 grid gap-5 rounded-[2rem] border border-woodAccent/40 bg-gradient-to-br from-warmGray/80 via-warmGray/95 to-cream/95 p-4 shadow-soft lg:grid-cols-[1.15fr_0.85fr] lg:p-8"
       >
-        <Card elevated className="space-y-6 border-white/70 bg-white/90">
+        <Card elevated className="space-y-6 border-woodAccent/25 bg-warmGray/95">
           <div className="inline-flex rounded-full border border-woodAccent/60 bg-warmGray p-1">
             <button
               type="button"
@@ -177,9 +177,9 @@ export default function LoginPage() {
                   id="login-email"
                   type="email"
                   {...registerLoginField('email')}
-                  className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
                 />
-                {errors.email && <p className="text-xs text-[#8E4A3A]">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs text-[#E07065]">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -190,9 +190,9 @@ export default function LoginPage() {
                   id="login-password"
                   type="password"
                   {...registerLoginField('password')}
-                  className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
                 />
-                {errors.password && <p className="text-xs text-[#8E4A3A]">{errors.password.message}</p>}
+                {errors.password && <p className="text-xs text-[#E07065]">{errors.password.message}</p>}
               </div>
 
               <Button type="submit" className="w-full" disabled={loginSubmitting} aria-label="Sign in">
@@ -211,9 +211,9 @@ export default function LoginPage() {
                   id="register-username"
                   type="text"
                   {...registerFormField('username')}
-                  className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
                 />
-                {registerErrors.username && <p className="text-xs text-[#8E4A3A]">{registerErrors.username.message}</p>}
+                {registerErrors.username && <p className="text-xs text-[#E07065]">{registerErrors.username.message}</p>}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -225,7 +225,7 @@ export default function LoginPage() {
                     id="register-first-name"
                     type="text"
                     {...registerFormField('first_name')}
-                    className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                    className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -236,7 +236,7 @@ export default function LoginPage() {
                     id="register-last-name"
                     type="text"
                     {...registerFormField('last_name')}
-                    className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                    className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
                   />
                 </div>
               </div>
@@ -249,9 +249,9 @@ export default function LoginPage() {
                   id="register-email"
                   type="email"
                   {...registerFormField('email')}
-                  className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
                 />
-                {registerErrors.email && <p className="text-xs text-[#8E4A3A]">{registerErrors.email.message}</p>}
+                {registerErrors.email && <p className="text-xs text-[#E07065]">{registerErrors.email.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -262,9 +262,9 @@ export default function LoginPage() {
                   id="register-password"
                   type="password"
                   {...registerFormField('password')}
-                  className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
                 />
-                {registerErrors.password && <p className="text-xs text-[#8E4A3A]">{registerErrors.password.message}</p>}
+                {registerErrors.password && <p className="text-xs text-[#E07065]">{registerErrors.password.message}</p>}
               </div>
 
               <Button type="submit" className="w-full" disabled={registerSubmitting} aria-label="Create customer account">
@@ -274,7 +274,7 @@ export default function LoginPage() {
           )}
         </Card>
 
-        <Card elevated className="space-y-4 border-white/70 bg-white/85">
+        <Card elevated className="space-y-4 border-woodAccent/25 bg-warmGray/95">
           <h2 className="font-heading text-3xl text-tableBrown">Role-Aware Access</h2>
           <p className="text-sm text-tableBrown/85">
             Sign in once and Calm Table routes you according to your credentials.
@@ -289,7 +289,7 @@ export default function LoginPage() {
           </p>
           <Link
             href="/admin/login/"
-            className="inline-flex rounded-full border border-woodAccent bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-tableBrown hover:bg-warmGray"
+            className="inline-flex rounded-full border border-woodAccent bg-cream px-4 py-2 text-xs font-semibold uppercase tracking-wide text-tableBrown hover:bg-warmGray"
             aria-label="Open Django admin page"
           >
             Open Django Admin

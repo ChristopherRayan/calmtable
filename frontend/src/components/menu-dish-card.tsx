@@ -29,7 +29,7 @@ export function MenuDishCard({ item, onAddToCart }: MenuDishCardProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 30vw"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#eadcc8] via-[#f5f0ea] to-[#d9c5a9]">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-warmGray via-cream to-tableBrown/30">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-tableBrown/80">
               Image managed in admin
             </p>
@@ -51,7 +51,7 @@ export function MenuDishCard({ item, onAddToCart }: MenuDishCardProps) {
         ) : (
           <p className="text-xs text-tableBrown/70">No reviews yet</p>
         )}
-        <p className="text-sm text-[#4B3A32]">{item.description}</p>
+        <p className="text-sm text-muted">{item.description}</p>
         {item.dietary_tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {item.dietary_tags.map((tag) => (

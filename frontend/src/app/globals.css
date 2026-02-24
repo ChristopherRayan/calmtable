@@ -1,17 +1,31 @@
-/* Global styles and theme tokens for the Calm Table frontend. */
+/* Global styles and theme tokens for The CalmTable frontend. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --table-brown: #5c4033;
-  --table-brown-light: #6d4c41;
-  --wood-accent: #d2b48c;
-  --cream: #fdfbf7;
-  --warm-gray: #f5f0ea;
+  --table-brown-rgb: 110 84 63;
+  --table-brown-light-rgb: 141 109 83;
+  --wood-accent-rgb: 210 180 140;
+  --cream-rgb: 26 17 9;
+  --warm-gray-rgb: 34 22 14;
+  --ink-rgb: 244 233 219;
+  --muted-rgb: 158 140 122;
 }
 
-* {
+[data-theme='light'] {
+  --table-brown-rgb: 92 64 51;
+  --table-brown-light-rgb: 109 76 65;
+  --wood-accent-rgb: 210 180 140;
+  --cream-rgb: 253 251 247;
+  --warm-gray-rgb: 245 240 234;
+  --ink-rgb: 44 26 14;
+  --muted-rgb: 122 96 80;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -23,12 +37,29 @@ body {
 }
 
 body {
+  position: relative;
   font-family: var(--font-inter), sans-serif;
-  color: #2b1d16;
+  color: rgb(var(--ink-rgb));
   background:
-    radial-gradient(circle at 10% 10%, rgba(210, 180, 140, 0.25), transparent 35%),
-    radial-gradient(circle at 90% 20%, rgba(92, 64, 51, 0.08), transparent 30%),
-    var(--cream);
+    radial-gradient(circle at 10% 10%, rgb(var(--wood-accent-rgb) / 0.11), transparent 34%),
+    radial-gradient(circle at 90% 18%, rgb(var(--table-brown-rgb) / 0.18), transparent 28%),
+    rgb(var(--cream-rgb));
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.024;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+*,
+*::before,
+*::after {
+  transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
 }
 
 a {

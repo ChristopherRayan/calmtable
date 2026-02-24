@@ -25,7 +25,7 @@ export function FeaturedDishCard({ item }: FeaturedDishCardProps) {
             sizes="(max-width: 768px) 280px, 320px"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#eadcc8] via-[#f5f0ea] to-[#d9c5a9]">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-warmGray via-cream to-tableBrown/30">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-tableBrown/80">
               Add photo in admin
             </p>
@@ -42,7 +42,7 @@ export function FeaturedDishCard({ item }: FeaturedDishCardProps) {
             Ordered {item.ordered_count} times
           </p>
         )}
-        <p className="line-clamp-2 text-sm text-[#4B3A32]">{item.description}</p>
+        <p className="line-clamp-2 text-sm text-muted">{item.description}</p>
       </div>
     </Card>
   );

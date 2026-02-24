@@ -11,8 +11,8 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 
 export const metadata: Metadata = {
-  title: 'Calm Table',
-  description: 'Premium dining and reservation experience for Calm Table.',
+  title: 'The CalmTable',
+  description: 'Premium dining and reservation experience for The CalmTable.',
 };
 
 export default function RootLayout({
@@ -21,11 +21,33 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="bg-cream font-body text-[#2B1D16] antialiased">
+    <html
+      lang="en"
+      className={`${inter.variable} ${playfair.variable}`}
+      data-theme="dark"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                try {
+                  var stored = localStorage.getItem('calmtable-theme');
+                  var theme = stored === 'light' ? 'light' : 'dark';
+                  document.documentElement.setAttribute('data-theme', theme);
+                } catch (e) {
+                  document.documentElement.setAttribute('data-theme', 'dark');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="bg-cream font-body text-ink antialiased">
         <Providers>
           <Navigation />
-          <main>{children}</main>
+          <main className="pt-20">{children}</main>
         </Providers>
       </body>
     </html>

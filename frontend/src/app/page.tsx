@@ -53,11 +53,11 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
           className="page-shell w-full pb-14"
         >
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#F8F0E7]">Calm Table</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-woodAccent">The CalmTable</p>
           <h1 className="mt-3 w-full max-w-[980px] font-heading text-4xl leading-tight text-white sm:text-5xl lg:text-6xl">
             Modern fine dining with a calm atmosphere and unforgettable flavors.
           </h1>
-          <p className="mt-4 w-full max-w-[820px] text-sm text-[#F8F0E7] sm:text-base">
+          <p className="mt-4 w-full max-w-[820px] text-sm text-woodAccent/90 sm:text-base">
             Join us tonight for handcrafted dishes, curated wines, and warm service in the heart of the city.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
@@ -127,7 +127,7 @@ export default function HomePage() {
               title="Opening Hours & Location"
               description={`Today is ${format(new Date(), 'EEEE, MMMM d')}. We are open daily between 5:00 PM and 10:00 PM.`}
             />
-            <div className="space-y-3 text-sm text-[#4B3A32]">
+            <div className="space-y-3 text-sm text-muted">
               <p className="flex items-center gap-2">
                 <Clock3 size={16} className="text-tableBrown" />
                 Daily: 5:00 PM - 10:00 PM
@@ -139,7 +139,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-woodAccent/60 bg-white shadow-soft">
+          <div className="overflow-hidden rounded-2xl border border-woodAccent/60 bg-warmGray shadow-soft">
             <iframe
               title="Calm Table map location"
               src="https://maps.google.com/maps?q=Simso%20Filling%20Station%2C%20Luwinga%2C%20Mzuzu%2C%20Malawi&t=&z=15&ie=UTF8&iwloc=&output=embed"

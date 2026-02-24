@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/components/auth-provider';
 import { CartDrawer } from '@/components/cart-drawer';
 import { CartProvider } from '@/components/cart-provider';
+import { ThemeProvider } from '@/components/theme-provider';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -14,21 +15,23 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <AuthProvider>
-      <CartProvider>
-        {children}
-        <CartDrawer />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: '#F5F0EA',
-              color: '#2B1D16',
-              border: '1px solid #D2B48C',
-            },
-          }}
-        />
-      </CartProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          {children}
+          <CartDrawer />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: 'rgb(var(--warm-gray-rgb))',
+                color: 'rgb(var(--ink-rgb))',
+                border: '1px solid rgb(var(--wood-accent-rgb) / 0.35)',
+              },
+            }}
+          />
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

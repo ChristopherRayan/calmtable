@@ -6,11 +6,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        tableBrown: '#5C4033',
-        tableBrownLight: '#6D4C41',
-        woodAccent: '#D2B48C',
-        cream: '#FDFBF7',
-        warmGray: '#F5F0EA',
+        tableBrown: 'rgb(var(--table-brown-rgb) / <alpha-value>)',
+        tableBrownLight: 'rgb(var(--table-brown-light-rgb) / <alpha-value>)',
+        woodAccent: 'rgb(var(--wood-accent-rgb) / <alpha-value>)',
+        cream: 'rgb(var(--cream-rgb) / <alpha-value>)',
+        warmGray: 'rgb(var(--warm-gray-rgb) / <alpha-value>)',
+        ink: 'rgb(var(--ink-rgb) / <alpha-value>)',
+        muted: 'rgb(var(--muted-rgb) / <alpha-value>)',
       },
       fontFamily: {
         heading: ['var(--font-playfair)', 'serif'],

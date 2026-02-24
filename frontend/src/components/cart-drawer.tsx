@@ -88,7 +88,7 @@ export function CartDrawer() {
 
             <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
               {!isAuthenticated && (
-                <div className="rounded-2xl border border-woodAccent/40 bg-white p-4 text-center text-sm text-tableBrown/80">
+                <div className="rounded-2xl border border-woodAccent/40 bg-warmGray p-4 text-center text-sm text-tableBrown/80">
                   <p>Sign in as a customer to checkout.</p>
                   <Link
                     href="/login?next=/menu"
@@ -99,18 +99,18 @@ export function CartDrawer() {
                 </div>
               )}
               {isAuthenticated && user?.is_staff && (
-                <div className="rounded-2xl border border-woodAccent/40 bg-white p-4 text-center text-sm text-tableBrown/80">
+                <div className="rounded-2xl border border-woodAccent/40 bg-warmGray p-4 text-center text-sm text-tableBrown/80">
                   Staff accounts can view the cart but cannot checkout.
                 </div>
               )}
               {items.length === 0 && (
-                <div className="rounded-2xl border border-woodAccent/40 bg-white p-4 text-center text-sm text-tableBrown/80">
+                <div className="rounded-2xl border border-woodAccent/40 bg-warmGray p-4 text-center text-sm text-tableBrown/80">
                   Your cart is empty. Add dishes from the menu.
                 </div>
               )}
 
               {items.map((item) => (
-                <div key={item.menu_item_id} className="rounded-2xl border border-woodAccent/40 bg-white p-3">
+                <div key={item.menu_item_id} className="rounded-2xl border border-woodAccent/40 bg-warmGray p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold text-tableBrown">{item.name}</p>
@@ -119,7 +119,7 @@ export function CartDrawer() {
                     <button
                       type="button"
                       aria-label={`Remove ${item.name} from cart`}
-                      className="text-tableBrown/70 hover:text-[#8E4A3A]"
+                      className="text-tableBrown/70 hover:text-[#E07065]"
                       onClick={() => removeItem(item.menu_item_id)}
                     >
                       <Trash2 size={16} />

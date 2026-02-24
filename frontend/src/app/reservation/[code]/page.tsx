@@ -79,7 +79,7 @@ export default function ReservationLookupPage({ params }: ReservationLookupPageP
             <h2 className="font-heading text-2xl text-tableBrown">Reservation Details</h2>
             <StatusBadge status={reservation.status} />
           </div>
-          <dl className="grid gap-3 text-sm text-[#4B3A32] sm:grid-cols-2">
+          <dl className="grid gap-3 text-sm text-muted sm:grid-cols-2">
             <div>
               <dt className="font-semibold text-tableBrown">Guest</dt>
               <dd>{reservation.name}</dd>

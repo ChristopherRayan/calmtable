@@ -271,7 +271,7 @@ export default function BookPage() {
         {currentStep === 2 && (
           <Card elevated className="space-y-6">
             <h3 className="font-heading text-2xl text-tableBrown">Step 2: Select a Time Slot</h3>
-            <p className="text-sm text-[#4B3A32]">{format(parsedSelectedDate, 'EEEE, MMMM d, yyyy')}</p>
+            <p className="text-sm text-muted">{format(parsedSelectedDate, 'EEEE, MMMM d, yyyy')}</p>
 
             {slotLoading && <p className="text-sm text-tableBrown">Loading available slots...</p>}
 
@@ -327,7 +327,7 @@ export default function BookPage() {
                   {...register('name')}
                   className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
                 />
-                {errors.name && <p className="text-xs text-[#8E4A3A]">{errors.name.message}</p>}
+                {errors.name && <p className="text-xs text-[#E07065]">{errors.name.message}</p>}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -342,7 +342,7 @@ export default function BookPage() {
                   readOnly
                   className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
                 />
-                  {errors.email && <p className="text-xs text-[#8E4A3A]">{errors.email.message}</p>}
+                  {errors.email && <p className="text-xs text-[#E07065]">{errors.email.message}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -355,7 +355,7 @@ export default function BookPage() {
                     {...register('phone')}
                     className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
                   />
-                  {errors.phone && <p className="text-xs text-[#8E4A3A]">{errors.phone.message}</p>}
+                  {errors.phone && <p className="text-xs text-[#E07065]">{errors.phone.message}</p>}
                 </div>
               </div>
 
@@ -369,7 +369,7 @@ export default function BookPage() {
                   {...register('special_requests')}
                   className="w-full rounded-xl border border-woodAccent bg-white px-3 py-2 text-sm"
                 />
-                {errors.special_requests && <p className="text-xs text-[#8E4A3A]">{errors.special_requests.message}</p>}
+                {errors.special_requests && <p className="text-xs text-[#E07065]">{errors.special_requests.message}</p>}
               </div>
 
               <div className="flex items-center justify-between pt-2">
@@ -387,13 +387,13 @@ export default function BookPage() {
         {currentStep === 4 && createdReservation && (
           <Card elevated className="space-y-6 text-center">
             <h3 className="font-heading text-3xl text-tableBrown">Step 4: Reservation Confirmed</h3>
-            <p className="text-sm text-[#4B3A32]">Your table has been requested successfully. Save this confirmation code.</p>
+            <p className="text-sm text-muted">Your table has been requested successfully. Save this confirmation code.</p>
             <div className="mx-auto max-w-sm rounded-2xl border border-woodAccent bg-white p-6">
               <p className="text-xs uppercase tracking-[0.2em] text-tableBrown/70">Confirmation Code</p>
               <p className="mt-2 font-heading text-4xl tracking-[0.15em] text-tableBrown">
                 {createdReservation.confirmation_code}
               </p>
-              <p className="mt-3 text-xs text-[#4B3A32]">
+              <p className="mt-3 text-xs text-muted">
                 {format(parseISO(createdReservation.date), 'PPP')} at {createdReservation.time_slot} for {createdReservation.party_size} guests
               </p>
             </div>
