@@ -1,0 +1,16 @@
+{# Custom Django admin shell for The CalmTable branding and premium styling. #}
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | The CalmTable Admin{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/css/calm_admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+  <h1 id="site-name"><a href="{% url 'admin:index' %}">The CalmTable Admin</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

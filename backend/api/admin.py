@@ -4,6 +4,10 @@ from django.contrib import admin
 
 from .models import AdminNotification, MenuItem, Order, OrderItem, Reservation, Review, UserProfile
 
+admin.site.site_header = "The CalmTable Administration"
+admin.site.site_title = "The CalmTable Admin"
+admin.site.index_title = "Operational control center"
+
 
 class MenuItemAdminForm(forms.ModelForm):
     """Admin form with comma-separated dietary tags editing."""

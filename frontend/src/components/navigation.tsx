@@ -418,12 +418,12 @@ export function Navigation() {
                   )}
                   {user?.is_staff && (
                     <Link
-                      href="/admin-dashboard"
+                      href="/admin/"
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 hover:bg-woodAccent/10 hover:text-ink"
                     >
                       <BookOpen size={15} />
-                      Admin Dashboard
+                      Admin Panel
                     </Link>
                   )}
                   <button

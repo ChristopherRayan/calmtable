@@ -97,7 +97,7 @@ export default function LoginPage() {
         router.push(nextPath);
         return;
       }
-      router.push(signedInUser.is_staff ? '/admin-dashboard' : '/book');
+      router.push(signedInUser.is_staff ? '/admin/' : '/book');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Unable to sign in.');
     } finally {

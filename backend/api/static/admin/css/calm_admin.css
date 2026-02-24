@@ -1,0 +1,300 @@
+/* Premium Django admin theme for The CalmTable with dark/light system support. */
+:root {
+  --ct-bg: #fdfbf7;
+  --ct-surface: #f5f0ea;
+  --ct-surface-2: #ede4d9;
+  --ct-text: #2c1a0e;
+  --ct-text-dim: #6d5a4e;
+  --ct-border: rgba(92, 64, 51, 0.18);
+  --ct-primary: #5c4033;
+  --ct-primary-hover: #6d4c41;
+  --ct-accent: #d2b48c;
+  --ct-positive: #3a6b35;
+  --ct-danger: #b64f46;
+  --ct-shadow: 0 12px 28px rgba(30, 14, 7, 0.08);
+  --ct-radius: 10px;
+}
+
+html[data-theme="dark"] {
+  --ct-bg: #1a1109;
+  --ct-surface: #221610;
+  --ct-surface-2: #2a1c10;
+  --ct-text: #fdfbf7;
+  --ct-text-dim: #c6b7a4;
+  --ct-border: rgba(210, 180, 140, 0.22);
+  --ct-primary: #6d4c41;
+  --ct-primary-hover: #7b5649;
+  --ct-accent: #d2b48c;
+  --ct-positive: #7ab074;
+  --ct-danger: #e07b6d;
+  --ct-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+}
+
+html,
+body {
+  background: var(--ct-bg);
+  color: var(--ct-text);
+}
+
+#container {
+  background: var(--ct-bg);
+  color: var(--ct-text);
+}
+
+#header {
+  background: linear-gradient(180deg, var(--ct-primary) 0%, var(--ct-primary-hover) 100%);
+  color: #fdfbf7;
+  border-bottom: 1px solid rgba(210, 180, 140, 0.24);
+}
+
+#site-name a {
+  color: #fdfbf7;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+#user-tools,
+#user-tools a {
+  color: rgba(253, 251, 247, 0.92);
+}
+
+#user-tools a:hover,
+#user-tools a:focus {
+  color: #ffffff;
+}
+
+div.breadcrumbs {
+  background: var(--ct-surface);
+  color: var(--ct-text-dim);
+  border-bottom: 1px solid var(--ct-border);
+}
+
+div.breadcrumbs a {
+  color: var(--ct-primary);
+}
+
+#content,
+.main > .content {
+  background: var(--ct-bg);
+}
+
+#content h1,
+#content h2,
+#content h3,
+.module caption,
+.inline-group h2 {
+  color: var(--ct-text);
+}
+
+#changelist .actions,
+.paginator,
+.object-tools a,
+.module,
+.results,
+fieldset,
+.submit-row,
+.messagelist li,
+.dashboard #content-main .module {
+  border-radius: var(--ct-radius);
+}
+
+.module,
+.aligned .form-row,
+fieldset {
+  background: var(--ct-surface);
+  border: 1px solid var(--ct-border);
+  box-shadow: var(--ct-shadow);
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+  background: transparent;
+  color: var(--ct-primary);
+  border-bottom: 1px solid var(--ct-border);
+  font-weight: 700;
+}
+
+#nav-sidebar {
+  background: var(--ct-surface);
+  border-right: 1px solid var(--ct-border);
+}
+
+#nav-sidebar .current-app .section:link,
+#nav-sidebar .current-app .section:visited,
+#nav-sidebar .section:link,
+#nav-sidebar .section:visited {
+  background: var(--ct-primary);
+  color: #fdfbf7;
+}
+
+#nav-sidebar a:link,
+#nav-sidebar a:visited {
+  color: var(--ct-text);
+}
+
+#nav-sidebar a:hover,
+#nav-sidebar a:focus {
+  color: var(--ct-primary);
+}
+
+#changelist-filter {
+  background: var(--ct-surface);
+  border-left: 1px solid var(--ct-border);
+}
+
+#changelist-filter h2 {
+  background: var(--ct-primary);
+  color: #fdfbf7;
+}
+
+a:link,
+a:visited {
+  color: var(--ct-primary);
+}
+
+a:hover,
+a:focus {
+  color: var(--ct-primary-hover);
+}
+
+input,
+textarea,
+select,
+.vTextField {
+  background: var(--ct-surface-2);
+  border: 1px solid var(--ct-border);
+  color: var(--ct-text);
+  border-radius: 8px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--ct-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(210, 180, 140, 0.22);
+}
+
+.button,
+input[type="submit"],
+input[type="button"],
+.submit-row input,
+a.button {
+  background: var(--ct-primary);
+  border: 1px solid var(--ct-primary);
+  color: #fdfbf7;
+  border-radius: 8px;
+}
+
+.button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+.submit-row input:hover,
+a.button:hover {
+  background: var(--ct-primary-hover);
+  border-color: var(--ct-primary-hover);
+}
+
+.button.default,
+input[type="submit"].default,
+.submit-row input.default {
+  background: var(--ct-primary);
+  border-color: var(--ct-primary);
+}
+
+.button.default:hover,
+input[type="submit"].default:hover,
+.submit-row input.default:hover {
+  background: var(--ct-primary-hover);
+  border-color: var(--ct-primary-hover);
+}
+
+.deletelink {
+  color: var(--ct-danger) !important;
+}
+
+.success,
+.messagelist .success {
+  background: color-mix(in srgb, var(--ct-positive) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ct-positive) 50%, transparent);
+  color: var(--ct-text);
+}
+
+.warning,
+.messagelist .warning {
+  border: 1px solid color-mix(in srgb, var(--ct-accent) 60%, transparent);
+}
+
+.error,
+.messagelist .error {
+  border: 1px solid color-mix(in srgb, var(--ct-danger) 60%, transparent);
+}
+
+table thead th {
+  background: color-mix(in srgb, var(--ct-primary) 14%, transparent);
+  color: var(--ct-text);
+  border-bottom: 1px solid var(--ct-border);
+}
+
+table tbody tr {
+  background: transparent;
+}
+
+table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--ct-surface) 60%, transparent);
+}
+
+table tbody tr:hover {
+  background: color-mix(in srgb, var(--ct-accent) 20%, transparent);
+}
+
+.selector-chosen h2,
+.selector-available h2 {
+  background: var(--ct-primary);
+  color: #fdfbf7;
+}
+
+.calendarbox,
+.clockbox {
+  background: var(--ct-surface);
+  border: 1px solid var(--ct-border);
+  border-radius: 8px;
+}
+
+body.login #container {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--ct-accent) 16%, transparent), transparent 42%),
+    var(--ct-bg);
+}
+
+body.login #content {
+  padding: 32px 0 0;
+}
+
+body.login #content-main {
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+body.login .form-row {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+body.login .submit-row {
+  padding-left: 0;
+  padding-right: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+body.login #header {
+  border-bottom: 0;
+  box-shadow: none;
+}
