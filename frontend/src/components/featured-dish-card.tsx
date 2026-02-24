@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Badge } from '@/components/badge';
 import { Card } from '@/components/card';
 import { formatKwacha } from '@/lib/currency';
+import { shouldSkipImageOptimization } from '@/lib/image';
 import type { MenuItem } from '@/lib/types';
 
 interface FeaturedDishCardProps {
@@ -23,6 +24,7 @@ export function FeaturedDishCard({ item }: FeaturedDishCardProps) {
             fill
             className="object-cover"
             sizes="(max-width: 768px) 280px, 320px"
+            unoptimized={shouldSkipImageOptimization(item.image_url)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-warmGray via-cream to-tableBrown/30">

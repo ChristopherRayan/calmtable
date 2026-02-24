@@ -36,6 +36,10 @@ class MenuItem(models.Model):
 
     class Meta:
         ordering = ("name",)
+        indexes = [
+            models.Index(fields=["is_available", "category"]),
+            models.Index(fields=["is_featured", "is_available"]),
+        ]
 
     def __str__(self) -> str:
         return self.name
@@ -98,6 +102,10 @@ class Reservation(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["date", "time_slot", "status"]),
+            models.Index(fields=["user", "date"]),
+        ]
 
     def __str__(self) -> str:
         return f"{self.confirmation_code} - {self.name}"
@@ -228,6 +236,9 @@ class Order(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["user", "status", "created_at"]),
+        ]
 
     def __str__(self) -> str:
         return f"Order<{self.pk}> {self.email}"

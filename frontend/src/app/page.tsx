@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 
 import { fetchBestOrderedMenuItems } from '@/lib/services';
 import { formatKwacha } from '@/lib/currency';
+import { shouldSkipImageOptimization } from '@/lib/image';
 import type { MenuItem } from '@/lib/types';
 
 import styles from './page.module.css';
@@ -153,7 +154,11 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <p className={styles.heroEyebrow}>The CalmTable &amp; Family Restaurant</p>
           <h1 className={styles.heroTitle}>
-            Modern fine dining with a <em>calm atmosphere</em> and unforgettable flavors.
+            Modern fine dining
+            <br />
+            with a <em>calm atmosphere</em>
+            <br />
+            and unforgettable flavors.
           </h1>
           <p className={styles.heroSub}>
             Join us for handcrafted dishes, warm hospitality, and premium ambiance near Simso Filling Station,
@@ -258,6 +263,7 @@ export default function HomePage() {
                   width={720}
                   height={900}
                   className={styles.dishImage}
+                  unoptimized={shouldSkipImageOptimization(dish.image_url)}
                 />
               </div>
               <div className={styles.dishOverlay} />

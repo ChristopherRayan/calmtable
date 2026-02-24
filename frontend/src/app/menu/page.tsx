@@ -12,6 +12,7 @@ import { useAuth } from '@/components/auth-provider';
 import { useCart } from '@/components/cart-provider';
 import { fetchMenuItems } from '@/lib/services';
 import { formatKwacha } from '@/lib/currency';
+import { shouldSkipImageOptimization } from '@/lib/image';
 import type { MenuItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -180,6 +181,7 @@ export default function MenuPage() {
                   priority
                   className={styles.cardImage}
                   sizes="100vw"
+                  unoptimized={shouldSkipImageOptimization(resolveImageUrl(featuredItem))}
                 />
               ) : (
                 <div className={styles.cardPlaceholder}>
@@ -250,6 +252,7 @@ export default function MenuPage() {
                         fill
                         className={styles.cardImage}
                         sizes="(max-width: 1024px) 50vw, 33vw"
+                        unoptimized={shouldSkipImageOptimization(resolvedImage)}
                       />
                     ) : (
                       <div className={styles.cardPlaceholder}>

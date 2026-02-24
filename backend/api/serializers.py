@@ -40,12 +40,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
         profile = getattr(obj, "profile", None)
         if not profile or not profile.profile_image:
             return ""
-
-        request = self.context.get("request")
-        url = profile.profile_image.url
-        if request:
-            return request.build_absolute_uri(url)
-        return url
+        return profile.profile_image.url
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -133,20 +128,14 @@ class MenuItemSerializer(serializers.ModelSerializer):
     ordered_count = serializers.SerializerMethodField(read_only=True)
 
     def get_image_url(self, obj):
-        request = self.context.get("request")
         url = obj.preferred_image_url
         if not url:
             return ""
-        if request and str(url).startswith("/"):
-            return request.build_absolute_uri(url)
         return url
 
     def get_image_file(self, obj):
         if not obj.image_file:
             return ""
-        request = self.context.get("request")
-        if request:
-            return request.build_absolute_uri(obj.image_file.url)
         return obj.image_file.url
 
     def get_ordered_count(self, obj):

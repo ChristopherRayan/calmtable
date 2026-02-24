@@ -11,6 +11,7 @@ import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { SectionHeading } from '@/components/section-heading';
+import { shouldSkipImageOptimization } from '@/lib/image';
 
 const schema = z.object({
   first_name: z.string().trim().max(150, 'First name is too long.'),
@@ -114,7 +115,14 @@ export default function ProfilePage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="relative h-24 w-24 overflow-hidden rounded-full border border-woodAccent/40 bg-cream">
                 {currentImageUrl ? (
-                  <Image src={currentImageUrl} alt="Profile avatar preview" fill className="object-cover" sizes="96px" />
+                  <Image
+                    src={currentImageUrl}
+                    alt="Profile avatar preview"
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                    unoptimized={shouldSkipImageOptimization(currentImageUrl)}
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.14em] text-muted">
                     No image

@@ -9,6 +9,8 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -145,6 +147,7 @@ class MyReservationsAPIView(APIView):
         return Response(serializer.data)
 
 
+@method_decorator(cache_page(60), name="list")
 class MenuItemViewSet(viewsets.ReadOnlyModelViewSet):
     """Read-only endpoints for menu listing and details."""
 
@@ -158,12 +161,14 @@ class MenuItemViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(is_available=True)
         return queryset
 
+    @method_decorator(cache_page(60))
     @action(detail=False, methods=["get"], url_path="featured")
     def featured(self, request):
         queryset = self.filter_queryset(self.get_queryset().filter(is_featured=True))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @method_decorator(cache_page(60))
     @action(detail=False, methods=["get"], url_path="best-ordered")
     def best_ordered(self, request):
         ordered_count_annotation = Coalesce(
@@ -229,6 +234,7 @@ class ReviewViewSet(
         return [permissions.IsAuthenticated()]
 
 
+@method_decorator(cache_page(20), name="get")
 class AvailableSlotsAPIView(APIView):
     """Return available reservation slots for a given date."""
 

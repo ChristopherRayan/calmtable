@@ -17,20 +17,83 @@ import type {
   ReviewCreatePayload,
 } from '@/lib/types';
 
+interface CacheEntry<T> {
+  data: T;
+  expiresAt: number;
+}
+
+const requestCache = new Map<string, CacheEntry<unknown>>();
+const DEFAULT_CACHE_TTL_MS = 60_000;
+const SLOT_CACHE_TTL_MS = 20_000;
+
+function readCache<T>(key: string): T | null {
+  const cached = requestCache.get(key);
+  if (!cached) {
+    return null;
+  }
+
+  if (Date.now() > cached.expiresAt) {
+    requestCache.delete(key);
+    return null;
+  }
+
+  return cached.data as T;
+}
+
+function writeCache<T>(key: string, data: T, ttlMs = DEFAULT_CACHE_TTL_MS): T {
+  requestCache.set(key, {
+    data,
+    expiresAt: Date.now() + ttlMs,
+  });
+  return data;
+}
+
+function clearCacheByPrefix(prefix: string) {
+  for (const key of Array.from(requestCache.keys())) {
+    if (key.startsWith(prefix)) {
+      requestCache.delete(key);
+    }
+  }
+}
+
+function menuCacheKey(filters?: { category?: string; dietaryTags?: string[] }) {
+  const category = filters?.category ?? '';
+  const tags = (filters?.dietaryTags ?? []).slice().sort().join(',');
+  return `menu:${category}:${tags}`;
+}
+
 export async function fetchFeaturedMenuItems(): Promise<MenuItem[]> {
+  const cacheKey = 'menu:featured';
+  const cached = readCache<MenuItem[]>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const response = await api.get<MenuItem[]>('/menu/featured/');
-  return response.data;
+  return writeCache(cacheKey, response.data);
 }
 
 export async function fetchBestOrderedMenuItems(): Promise<MenuItem[]> {
+  const cacheKey = 'menu:best-ordered';
+  const cached = readCache<MenuItem[]>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const response = await api.get<MenuItem[]>('/menu/best-ordered/');
-  return response.data;
+  return writeCache(cacheKey, response.data);
 }
 
 export async function fetchMenuItems(filters?: {
   category?: string;
   dietaryTags?: string[];
 }): Promise<MenuItem[]> {
+  const cacheKey = menuCacheKey(filters);
+  const cached = readCache<MenuItem[]>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const params = new URLSearchParams();
 
   if (filters?.category && filters.category !== 'all') {
@@ -46,16 +109,23 @@ export async function fetchMenuItems(filters?: {
   const query = params.toString();
   const url = query ? `/menu/?${query}` : '/menu/';
   const response = await api.get<MenuItem[]>(url);
-  return response.data;
+  return writeCache(cacheKey, response.data);
 }
 
 export async function fetchAvailableSlots(date: string): Promise<AvailableSlotsResponse> {
+  const cacheKey = `slots:${date}`;
+  const cached = readCache<AvailableSlotsResponse>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const response = await api.get<AvailableSlotsResponse>(`/available-slots/?date=${date}`);
-  return response.data;
+  return writeCache(cacheKey, response.data, SLOT_CACHE_TTL_MS);
 }
 
 export async function createReservation(payload: ReservationCreatePayload): Promise<Reservation> {
   const response = await api.post<Reservation>('/reservations/', payload);
+  clearCacheByPrefix(`slots:${payload.date}`);
   return response.data;
 }
 
@@ -114,22 +184,33 @@ export async function fetchMyReservations(): Promise<Reservation[]> {
 }
 
 export async function fetchReviews(menuItemId?: number): Promise<Review[]> {
+  const cacheKey = `reviews:${menuItemId ?? 'all'}`;
+  const cached = readCache<Review[]>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const query = menuItemId ? `?menu_item=${menuItemId}` : '';
   const response = await api.get<Review[]>(`/reviews/${query}`);
-  return response.data;
+  return writeCache(cacheKey, response.data, 30_000);
 }
 
 export async function createReview(payload: ReviewCreatePayload): Promise<Review> {
   const response = await api.post<Review>('/reviews/', payload);
+  clearCacheByPrefix('reviews:');
+  clearCacheByPrefix('menu:');
   return response.data;
 }
 
 export async function deleteReview(reviewId: number): Promise<void> {
   await api.delete(`/reviews/${reviewId}/`);
+  clearCacheByPrefix('reviews:');
+  clearCacheByPrefix('menu:');
 }
 
 export async function createOrder(payload: OrderCreatePayload): Promise<Order> {
   const response = await api.post<Order>('/orders/', payload);
+  clearCacheByPrefix('menu:best-ordered');
   return response.data;
 }
 

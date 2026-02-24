@@ -23,6 +23,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/components/auth-provider';
 import { useCart } from '@/components/cart-provider';
 import { useTheme } from '@/components/theme-provider';
+import { shouldSkipImageOptimization } from '@/lib/image';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
@@ -287,7 +288,14 @@ export function Navigation() {
               >
                 {user?.profile_image_url ? (
                   <span className="relative block h-full w-full overflow-hidden rounded-full">
-                    <Image src={user.profile_image_url} alt="Profile avatar" fill className="object-cover" sizes="40px" />
+                    <Image
+                      src={user.profile_image_url}
+                      alt="Profile avatar"
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                      unoptimized={shouldSkipImageOptimization(user.profile_image_url)}
+                    />
                   </span>
                 ) : (
                   profileInitials

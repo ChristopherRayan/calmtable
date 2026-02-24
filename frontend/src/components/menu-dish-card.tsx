@@ -7,6 +7,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { StarRatingDisplay } from '@/components/star-rating';
 import { formatKwacha } from '@/lib/currency';
+import { shouldSkipImageOptimization } from '@/lib/image';
 import type { MenuItem } from '@/lib/types';
 
 interface MenuDishCardProps {
@@ -27,6 +28,7 @@ export function MenuDishCard({ item, onAddToCart }: MenuDishCardProps) {
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 30vw"
+            unoptimized={shouldSkipImageOptimization(item.image_url)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-warmGray via-cream to-tableBrown/30">
