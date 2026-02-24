@@ -2,10 +2,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import styles from './page.module.css';
+import { defaultFrontendSettings } from '@/lib/frontend-settings';
+import { fetchFrontendSettings } from '@/lib/services';
+import type { FrontendContentPayload } from '@/lib/types';
 
 interface ContactFormState {
   firstName: string;
@@ -26,6 +29,7 @@ const initialForm: ContactFormState = {
 };
 
 export default function ContactPage() {
+  const [settings, setSettings] = useState<FrontendContentPayload>(defaultFrontendSettings);
   const [form, setForm] = useState<ContactFormState>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -59,6 +63,27 @@ export default function ContactPage() {
       setForm(initialForm);
     }, 900);
   }
+
+  const contactContent = settings.contact;
+
+  useEffect(() => {
+    let active = true;
+    async function loadSettings() {
+      try {
+        const data = await fetchFrontendSettings();
+        if (active) {
+          setSettings(data);
+        }
+      } catch (_error) {
+        // Keep fallback content.
+      }
+    }
+
+    void loadSettings();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className={styles.pageWrap}>
@@ -188,8 +213,8 @@ export default function ContactPage() {
         <aside className={styles.infoCard}>
           <div className={styles.infoSection}>
             <h3 className={styles.infoSectionTitle}>Address</h3>
-            <p className={styles.infoLine}>Near Simso Filling Station</p>
-            <p className={styles.infoLine}>Luwinga, Mzuzu, Malawi</p>
+            <p className={styles.infoLine}>{contactContent.address_line_1}</p>
+            <p className={styles.infoLine}>{contactContent.address_line_2}</p>
           </div>
 
           <div className={styles.infoDivider} />
@@ -197,13 +222,13 @@ export default function ContactPage() {
           <div className={styles.infoSection}>
             <h3 className={styles.infoSectionTitle}>Contact</h3>
             <p className={styles.infoLine}>
-              <strong>Phone:</strong> +265 999 000 000
+              <strong>Phone:</strong> {contactContent.phone}
             </p>
             <p className={styles.infoLine}>
-              <strong>Email:</strong> hello@calmtable.mw
+              <strong>Email:</strong> {contactContent.email}
             </p>
             <p className={styles.infoLine}>
-              <strong>WhatsApp:</strong> +265 888 000 000
+              <strong>WhatsApp:</strong> {contactContent.whatsapp}
             </p>
           </div>
 
@@ -211,18 +236,14 @@ export default function ContactPage() {
 
           <div className={styles.infoSection}>
             <h3 className={styles.infoSectionTitle}>Opening Hours</h3>
-            <div className={styles.hoursRow}>
-              <span className={styles.day}>Monday - Friday</span>
-              <span>07:00 - 21:00</span>
-            </div>
-            <div className={styles.hoursRow}>
-              <span className={styles.day}>Saturday</span>
-              <span>08:00 - 22:00</span>
-            </div>
-            <div className={styles.hoursRow}>
-              <span className={styles.day}>Sunday</span>
-              <span className={styles.closed}>Closed</span>
-            </div>
+            {contactContent.opening_hours.map((row) => (
+              <div key={row.day} className={styles.hoursRow}>
+                <span className={styles.day}>{row.day}</span>
+                <span className={row.hours.toLowerCase().includes('closed') ? styles.closed : undefined}>
+                  {row.hours}
+                </span>
+              </div>
+            ))}
           </div>
 
           <div className={styles.infoDivider} />
@@ -252,16 +273,18 @@ export default function ContactPage() {
 
       <section className={styles.mapSection}>
         <iframe
-          src="https://maps.google.com/maps?q=Simso%20Filling%20Station%2C%20Luwinga%2C%20Mzuzu%2C%20Malawi&t=&z=15&ie=UTF8&iwloc=&output=embed"
+          src={contactContent.map_embed_url}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
           title="The CalmTable location map"
         />
-        <div className={styles.mapLabel}>The CalmTable - Near Simso Filling Station, Luwinga</div>
+        <div className={styles.mapLabel}>
+          {settings.brand_name} - {contactContent.address_line_1}
+        </div>
       </section>
 
       <footer className={styles.footer}>
-        <p className={styles.footerCopy}>© 2026 THE CALMTABLE. DINE WITH DIGNITY.</p>
+        <p className={styles.footerCopy}>© 2026 {settings.brand_name}. {settings.brand_tagline}.</p>
         <div className={styles.footerSocials}>
           <Link href="#" aria-label="Instagram">
             ◆

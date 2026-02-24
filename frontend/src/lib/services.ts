@@ -6,6 +6,8 @@ import type {
   AuthResponse,
   AuthUser,
   AvailableSlotsResponse,
+  FrontendContentPayload,
+  FrontendSettingsResponse,
   LoginPayload,
   MenuItem,
   Order,
@@ -72,6 +74,17 @@ export async function fetchFeaturedMenuItems(): Promise<MenuItem[]> {
 
   const response = await api.get<MenuItem[]>('/menu/featured/');
   return writeCache(cacheKey, response.data);
+}
+
+export async function fetchFrontendSettings(): Promise<FrontendContentPayload> {
+  const cacheKey = 'frontend:settings';
+  const cached = readCache<FrontendContentPayload>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const response = await api.get<FrontendSettingsResponse>('/frontend-settings/');
+  return writeCache(cacheKey, response.data.content);
 }
 
 export async function fetchBestOrderedMenuItems(): Promise<MenuItem[]> {

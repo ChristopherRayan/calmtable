@@ -21,9 +21,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .filters import MenuItemFilter
-from .models import AdminNotification, MenuItem, Order, OrderItem, Reservation, Review
+from .models import AdminNotification, FrontendSettings, MenuItem, Order, OrderItem, Reservation, Review
 from .serializers import (
     AdminNotificationSerializer,
+    FrontendSettingsSerializer,
     LoginSerializer,
     MenuItemSerializer,
     OrderCreateSerializer,
@@ -204,6 +205,18 @@ class MyReservationsAPIView(APIView):
             Q(user=request.user) | Q(email__iexact=request.user.email)
         ).order_by("-created_at")
         serializer = ReservationSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class FrontendSettingsAPIView(APIView):
+    """Public endpoint for frontend-editable CMS settings."""
+
+    permission_classes = [permissions.AllowAny]
+
+    @method_decorator(cache_page(60))
+    def get(self, request):
+        settings_obj = FrontendSettings.get_solo()
+        serializer = FrontendSettingsSerializer(settings_obj)
         return Response(serializer.data)
 
 

@@ -3,7 +3,16 @@ from django.contrib.auth import authenticate, get_user_model
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
-from .models import AdminNotification, MenuItem, Order, OrderItem, Reservation, Review, UserProfile
+from .models import (
+    AdminNotification,
+    FrontendSettings,
+    MenuItem,
+    Order,
+    OrderItem,
+    Reservation,
+    Review,
+    UserProfile,
+)
 
 User = get_user_model()
 
@@ -101,6 +110,19 @@ class AdminNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminNotification
         fields = ("id", "title", "message", "payload", "is_read", "created_at")
+
+
+class FrontendSettingsSerializer(serializers.ModelSerializer):
+    """Serializer for merged frontend settings content payload."""
+
+    content = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FrontendSettings
+        fields = ("content", "updated_at")
+
+    def get_content(self, obj):
+        return obj.resolved_content()
 
 
 class UserProfileUpdateSerializer(serializers.Serializer):

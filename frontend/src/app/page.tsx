@@ -7,10 +7,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { fetchBestOrderedMenuItems } from '@/lib/services';
+import { defaultFrontendSettings } from '@/lib/frontend-settings';
+import { fetchBestOrderedMenuItems, fetchFrontendSettings } from '@/lib/services';
 import { formatKwacha } from '@/lib/currency';
 import { shouldSkipImageOptimization } from '@/lib/image';
-import type { MenuItem } from '@/lib/types';
+import type { FrontendContentPayload, MenuItem } from '@/lib/types';
 
 import styles from './page.module.css';
 
@@ -56,6 +57,7 @@ const fallbackSignatureDishes: SignatureDish[] = [
 export default function HomePage() {
   const router = useRouter();
   const [bestOrderedItems, setBestOrderedItems] = useState<MenuItem[]>([]);
+  const [settings, setSettings] = useState<FrontendContentPayload>(defaultFrontendSettings);
   const [resForm, setResForm] = useState({
     name: '',
     phone: '',
@@ -99,6 +101,25 @@ export default function HomePage() {
 
     void loadBestOrderedItems();
 
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    async function loadSettings() {
+      try {
+        const data = await fetchFrontendSettings();
+        if (active) {
+          setSettings(data);
+        }
+      } catch (_error) {
+        // Keep fallback content.
+      }
+    }
+
+    void loadSettings();
     return () => {
       active = false;
     };
@@ -152,15 +173,14 @@ export default function HomePage() {
         <div className={styles.heroOverlay} />
         <div className={styles.heroOverlayBottom} />
         <div className={styles.heroContent}>
-          <p className={styles.heroEyebrow}>The CalmTable &amp; Family Restaurant</p>
+          <p className={styles.heroEyebrow}>{settings.home.hero_eyebrow}</p>
           <h1 className={styles.heroTitle}>
-            Modern fine dining with a <em>calm atmosphere</em>
+            {settings.home.hero_title_prefix} <em>{settings.home.hero_title_emphasis}</em>
             <br />
-            and unforgettable flavors.
+            {settings.home.hero_title_suffix}
           </h1>
           <p className={styles.heroSub}>
-            Join us for handcrafted dishes, warm hospitality, and premium ambiance near Simso Filling Station,
-            Luwinga, Mzuzu.
+            {settings.home.hero_description}
           </p>
           <div className={styles.heroButtons}>
             <Link href="/book" className={styles.primaryButton} aria-label="Book a table now">
@@ -174,15 +194,15 @@ export default function HomePage() {
 
         <div className={styles.heroStats}>
           <div className={styles.statBox}>
-            <span className={styles.statNumber}>12+</span>
+            <span className={styles.statNumber}>{settings.home.stats.years_serving}</span>
             <span className={styles.statLabel}>Years Serving</span>
           </div>
           <div className={styles.statBox}>
-            <span className={styles.statNumber}>80+</span>
+            <span className={styles.statNumber}>{settings.home.stats.menu_items}</span>
             <span className={styles.statLabel}>Menu Items</span>
           </div>
           <div className={styles.statBox}>
-            <span className={styles.statNumber}>4.9★</span>
+            <span className={styles.statNumber}>{settings.home.stats.rating}</span>
             <span className={styles.statLabel}>Avg. Rating</span>
           </div>
         </div>
@@ -210,25 +230,18 @@ export default function HomePage() {
             </h2>
             <div className={styles.goldLine} />
             <blockquote className={styles.aboutQuote}>
-              &quot;Good food is the foundation of genuine happiness - we serve both.&quot;
+              &quot;{settings.home.story_quote}&quot;
             </blockquote>
             <p className={styles.sectionSub}>
-              The CalmTable started as a family kitchen with one promise: feed every guest with dignity and care.
-              Today we serve Malawian favorites, fresh fish, and heritage recipes in a refined, welcoming setting.
+              {settings.home.story_description}
             </p>
             <div className={styles.aboutFeatures}>
-              <div className={styles.featureItem}>
-                <span className={styles.featureLabel}>Fresh Daily</span>
-                <span className={styles.featureSub}>Cooked every morning</span>
-              </div>
-              <div className={styles.featureItem}>
-                <span className={styles.featureLabel}>Family Owned</span>
-                <span className={styles.featureSub}>Since 2012</span>
-              </div>
-              <div className={styles.featureItem}>
-                <span className={styles.featureLabel}>Made with Care</span>
-                <span className={styles.featureSub}>Every single plate</span>
-              </div>
+              {settings.home.about_features.map((feature) => (
+                <div key={feature.title} className={styles.featureItem}>
+                  <span className={styles.featureLabel}>{feature.title}</span>
+                  <span className={styles.featureSub}>{feature.description}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -326,22 +339,22 @@ export default function HomePage() {
           <div className={`${styles.reveal}`} data-reveal="true">
             <p className={styles.eyebrow}>Reserve Your Spot</p>
             <h2 className={styles.reservationTitle}>
-              Book a Table for <em>An Unforgettable Evening</em>
+              {settings.home.reservation_banner_title} <em>{settings.home.reservation_banner_emphasis}</em>
             </h2>
             <p className={styles.reservationSub}>
-              Reserve your table in advance and let us prepare your premium dining experience.
+              {settings.home.reservation_banner_description}
             </p>
             <div className={styles.contactRow}>
-              <div>
-                <p className={styles.contactLabel}>Phone</p>
-                <p className={styles.contactValue}>+265 999 000 000</p>
-              </div>
-              <div>
-                <p className={styles.contactLabel}>WhatsApp</p>
-                <p className={styles.contactValue}>+265 888 000 000</p>
-              </div>
+            <div>
+              <p className={styles.contactLabel}>Phone</p>
+              <p className={styles.contactValue}>{settings.contact.phone}</p>
+            </div>
+            <div>
+              <p className={styles.contactLabel}>WhatsApp</p>
+              <p className={styles.contactValue}>{settings.contact.whatsapp}</p>
             </div>
           </div>
+        </div>
 
           <div className={`${styles.reservationForm} ${styles.reveal} ${styles.delay2}`} data-reveal="true">
             <p className={styles.reservationFormTitle}>Quick Reservation</p>
@@ -421,27 +434,19 @@ export default function HomePage() {
           </h2>
         </div>
         <div className={styles.testimonialsGrid}>
-          <article className={`${styles.testimonialCard} ${styles.reveal}`} data-reveal="true">
-            <p className={styles.stars}>★★★★★</p>
-            <p className={styles.testimonialText}>
-              &quot;The Chambo was absolutely divine. I keep coming back because the quality never drops.&quot;
-            </p>
-            <p className={styles.testimonialAuthor}>Amara Nkhoma</p>
-          </article>
-          <article className={`${styles.testimonialCard} ${styles.reveal} ${styles.delay1}`} data-reveal="true">
-            <p className={styles.stars}>★★★★★</p>
-            <p className={styles.testimonialText}>
-              &quot;Our family reunion was hosted perfectly. Warm service, great portions, and elegant atmosphere.&quot;
-            </p>
-            <p className={styles.testimonialAuthor}>Chisomo Banda</p>
-          </article>
-          <article className={`${styles.testimonialCard} ${styles.reveal} ${styles.delay2}`} data-reveal="true">
-            <p className={styles.stars}>★★★★★</p>
-            <p className={styles.testimonialText}>
-              &quot;Best Masamba Otendera in Mzuzu. Authentic taste and consistently professional service.&quot;
-            </p>
-            <p className={styles.testimonialAuthor}>Takondwa Mwale</p>
-          </article>
+          {settings.home.testimonials.slice(0, 3).map((testimonial, index) => (
+            <article
+              key={`${testimonial.author}-${index}`}
+              className={`${styles.testimonialCard} ${styles.reveal} ${index === 1 ? styles.delay1 : ''} ${
+                index === 2 ? styles.delay2 : ''
+              }`}
+              data-reveal="true"
+            >
+              <p className={styles.stars}>★★★★★</p>
+              <p className={styles.testimonialText}>&quot;{testimonial.quote}&quot;</p>
+              <p className={styles.testimonialAuthor}>{testimonial.author}</p>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -453,13 +458,7 @@ export default function HomePage() {
           </h2>
         </div>
         <div className={styles.galleryGrid}>
-          {[
-            'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=900&q=80',
-            'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
-            'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=600&q=80',
-            'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80',
-            'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80',
-          ].map((src, index) => (
+          {settings.home.gallery_images.map((src, index) => (
             <div key={src} className={styles.galleryItem}>
               <Image src={src} alt={`The CalmTable gallery ${index + 1}`} width={800} height={600} className={styles.galleryImage} />
             </div>
@@ -470,8 +469,8 @@ export default function HomePage() {
       <footer className={styles.siteFooter}>
         <div className={styles.footerGrid}>
           <div>
-            <p className={styles.footerLogo}>The CalmTable</p>
-            <p className={styles.footerTagline}>Dine with Dignity</p>
+            <p className={styles.footerLogo}>{settings.brand_name}</p>
+            <p className={styles.footerTagline}>{settings.brand_tagline}</p>
           </div>
           <div>
             <p className={styles.footerTitle}>Navigation</p>
@@ -484,13 +483,15 @@ export default function HomePage() {
           </div>
           <div>
             <p className={styles.footerTitle}>Contact</p>
-            <p className={styles.footerText}>Near Simso Filling Station, Luwinga, Mzuzu, Malawi</p>
-            <p className={styles.footerText}>+265 999 000 000</p>
-            <p className={styles.footerText}>hello@calmtable.mw</p>
+            <p className={styles.footerText}>
+              {settings.contact.address_line_1}, {settings.contact.address_line_2}
+            </p>
+            <p className={styles.footerText}>{settings.contact.phone}</p>
+            <p className={styles.footerText}>{settings.contact.email}</p>
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <p>© 2026 The CalmTable. All Rights Reserved.</p>
+          <p>© 2026 {settings.brand_name}. All Rights Reserved.</p>
         </div>
       </footer>
 

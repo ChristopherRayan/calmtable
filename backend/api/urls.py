@@ -7,6 +7,7 @@ from .views import (
     AdminNotificationViewSet,
     AnalyticsAPIView,
     AvailableSlotsAPIView,
+    FrontendSettingsAPIView,
     LoginAPIView,
     LogoutAPIView,
     MeAPIView,
@@ -27,6 +28,7 @@ router.register("notifications", AdminNotificationViewSet, basename="admin-notif
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("frontend-settings/", FrontendSettingsAPIView.as_view(), name="frontend-settings"),
     path("available-slots/", AvailableSlotsAPIView.as_view(), name="available-slots"),
     path("auth/register/", RegisterAPIView.as_view(), name="auth-register"),
     path("auth/login/", LoginAPIView.as_view(), name="auth-login"),

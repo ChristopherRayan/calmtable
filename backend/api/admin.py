@@ -1,12 +1,64 @@
 """Admin configuration for menu, reservations, reviews, and orders."""
 from django import forms
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from .models import AdminNotification, MenuItem, Order, OrderItem, Reservation, Review, UserProfile
+from .models import (
+    AdminNotification,
+    FrontendSettings,
+    MenuItem,
+    Order,
+    OrderItem,
+    Reservation,
+    Review,
+    UserProfile,
+)
 
 admin.site.site_header = "The CalmTable Administration"
 admin.site.site_title = "The CalmTable Admin"
 admin.site.index_title = "Operational control center"
+
+User = get_user_model()
+
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass
+
+
+@admin.register(User)
+class UserAdmin(DjangoUserAdmin):
+    """Admin for users with activation workflow and delete protections."""
+
+    list_display = (
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_active",
+        "is_staff",
+        "last_login",
+    )
+    list_filter = ("is_active", "is_staff", "is_superuser")
+    search_fields = ("username", "email", "first_name", "last_name")
+    actions = ("activate_selected_users", "deactivate_selected_users")
+
+    @admin.action(description="Activate selected users")
+    def activate_selected_users(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description="Deactivate selected users")
+    def deactivate_selected_users(self, request, queryset):
+        queryset.update(is_active=False)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions.pop("delete_selected", None)
+        return actions
 
 
 class MenuItemAdminForm(forms.ModelForm):
@@ -142,3 +194,33 @@ class AdminNotificationAdmin(admin.ModelAdmin):
     list_filter = ("is_read", "created_at")
     search_fields = ("title", "message", "recipient__username", "recipient__email")
     readonly_fields = ("created_at",)
+
+
+@admin.register(FrontendSettings)
+class FrontendSettingsAdmin(admin.ModelAdmin):
+    """Admin singleton for editable frontend content and page copy."""
+
+    list_display = ("key", "updated_at")
+    readonly_fields = ("key", "updated_at")
+    fieldsets = (
+        (
+            "Frontend CMS",
+            {
+                "description": (
+                    "Manage editable frontend content as JSON. "
+                    "Keys map to homepage/contact/about/members content blocks."
+                ),
+                "fields": ("key", "content", "updated_at"),
+            },
+        ),
+    )
+
+    def has_add_permission(self, request):
+        return not FrontendSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        obj.key = "default"
+        return super().save_model(request, obj, form, change)

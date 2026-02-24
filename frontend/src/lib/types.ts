@@ -164,3 +164,81 @@ export interface AdminNotification {
   is_read: boolean;
   created_at: string;
 }
+
+export interface FrontendFeatureItem {
+  title: string;
+  description: string;
+}
+
+export interface FrontendContactHour {
+  day: string;
+  hours: string;
+}
+
+export interface FrontendContactContent {
+  address_line_1: string;
+  address_line_2: string;
+  phone: string;
+  email: string;
+  whatsapp: string;
+  map_embed_url: string;
+  opening_hours: FrontendContactHour[];
+}
+
+export interface FrontendTestimonial {
+  quote: string;
+  author: string;
+}
+
+export interface FrontendStats {
+  years_serving: string;
+  menu_items: string;
+  rating: string;
+}
+
+export interface FrontendHomeContent {
+  hero_eyebrow: string;
+  hero_title_prefix: string;
+  hero_title_emphasis: string;
+  hero_title_suffix: string;
+  hero_description: string;
+  story_quote: string;
+  story_description: string;
+  about_features: FrontendFeatureItem[];
+  why_items: FrontendFeatureItem[];
+  stats: FrontendStats;
+  reservation_banner_title: string;
+  reservation_banner_emphasis: string;
+  reservation_banner_description: string;
+  testimonials: FrontendTestimonial[];
+  gallery_images: string[];
+}
+
+export interface FrontendAboutCard {
+  title: string;
+  body: string;
+}
+
+export interface FrontendAboutContent {
+  description: string;
+  cards: FrontendAboutCard[];
+}
+
+export interface FrontendMembersContent {
+  description: string;
+  benefits: FrontendFeatureItem[];
+}
+
+export interface FrontendContentPayload {
+  brand_name: string;
+  brand_tagline: string;
+  contact: FrontendContactContent;
+  home: FrontendHomeContent;
+  about: FrontendAboutContent;
+  members: FrontendMembersContent;
+}
+
+export interface FrontendSettingsResponse {
+  content: FrontendContentPayload;
+  updated_at: string;
+}
