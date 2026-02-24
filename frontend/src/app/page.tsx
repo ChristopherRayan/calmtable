@@ -154,9 +154,7 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <p className={styles.heroEyebrow}>The CalmTable &amp; Family Restaurant</p>
           <h1 className={styles.heroTitle}>
-            Modern fine dining
-            <br />
-            with a <em>calm atmosphere</em>
+            Modern fine dining with a <em>calm atmosphere</em>
             <br />
             and unforgettable flavors.
           </h1>

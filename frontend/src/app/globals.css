@@ -98,3 +98,36 @@ a {
     padding-right: 4rem;
   }
 }
+
+/* Globally tone down rounded corners on card/container style utilities by ~50%. */
+:where(.rounded-sm) {
+  border-radius: 0.0625rem !important;
+}
+
+:where(.rounded) {
+  border-radius: 0.125rem !important;
+}
+
+:where(.rounded-md) {
+  border-radius: 0.1875rem !important;
+}
+
+:where(.rounded-lg) {
+  border-radius: 0.25rem !important;
+}
+
+:where(.rounded-xl) {
+  border-radius: 0.375rem !important;
+}
+
+:where(.rounded-2xl) {
+  border-radius: 0.5rem !important;
+}
+
+:where(.rounded-3xl) {
+  border-radius: 0.75rem !important;
+}
+
+:where(.rounded-\[2rem\]) {
+  border-radius: 1rem !important;
+}
