@@ -1,6 +1,9 @@
 // Axios client and interceptors for frontend API communication.
 import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 
+import { clearAuthSession, getAccessToken, getRefreshToken, getStoredUser, updateAccessToken } from '@/lib/auth';
+import type { AuthResponse } from '@/lib/types';
+
 interface ApiErrorPayload {
   detail?: string;
   message?: string;
@@ -16,23 +19,90 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  if (typeof window !== 'undefined') {
-    const token = window.localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+const refreshClient = axios.create({
+  baseURL: apiBaseUrl,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+let refreshPromise: Promise<string> | null = null;
+
+async function refreshAccessToken(): Promise<string> {
+  if (refreshPromise) {
+    return refreshPromise;
   }
 
+  const refresh = getRefreshToken();
+  if (!refresh) {
+    throw new Error('Session expired. Please sign in again.');
+  }
+
+  refreshPromise = refreshClient
+    .post<{ access: string; refresh?: string }>('/auth/refresh/', { refresh })
+    .then((response) => {
+      const accessToken = response.data.access;
+      const refreshToken = response.data.refresh ?? refresh;
+      const user = getStoredUser();
+      if (user) {
+        // Reuse persisted profile and rotate tokens if refresh endpoint returns both.
+        window.localStorage.setItem('refresh_token', refreshToken);
+        updateAccessToken(accessToken);
+      }
+      return accessToken;
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
+}
+
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
-  (error: AxiosError<ApiErrorPayload>) => {
+  async (error: AxiosError<ApiErrorPayload>) => {
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+    const statusCode = error.response?.status;
+
+    if (statusCode === 401 && originalRequest && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh/')) {
+      originalRequest._retry = true;
+      try {
+        const newAccess = await refreshAccessToken();
+        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+        return api.request(originalRequest);
+      } catch (_refreshError) {
+        clearAuthSession();
+      }
+    }
+
     const message = error.response?.data?.detail ?? error.response?.data?.message ?? error.message;
     return Promise.reject(new Error(message));
   }
 );
+
+export async function loginRequest(payload: { email: string; password: string }): Promise<AuthResponse> {
+  const response = await api.post<AuthResponse>('/auth/login/', payload);
+  return response.data;
+}
+
+export async function registerRequest(payload: {
+  username: string;
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+}): Promise<AuthResponse> {
+  const response = await api.post<AuthResponse>('/auth/register/', payload);
+  return response.data;
+}
 
 export default api;

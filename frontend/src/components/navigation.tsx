@@ -1,16 +1,19 @@
-// Responsive top navigation with mobile menu interactions.
+// Responsive top navigation with auth links, cart access, and mobile interactions.
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, ShoppingBag, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 
+import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/button';
+import { useCart } from '@/components/cart-provider';
 import { cn } from '@/lib/utils';
 
-const navLinks = [
+const primaryLinks = [
   { href: '/', label: 'Home' },
   { href: '/menu', label: 'Menu' },
   { href: '/book', label: 'Book a Table' },
@@ -18,38 +21,100 @@ const navLinks = [
 
 export function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const { user, isAuthenticated, logout } = useAuth();
+  const { itemCount, setIsOpen } = useCart();
+
+  const authLinks = useMemo(() => {
+    if (!isAuthenticated) {
+      return [];
+    }
+
+    const links = [{ href: '/my-reservations', label: 'My Reservations' }];
+    if (user?.is_staff) {
+      links.push({ href: '/admin-dashboard', label: 'Dashboard' });
+    }
+    return links;
+  }, [isAuthenticated, user?.is_staff]);
+
+  async function handleLogout() {
+    try {
+      await logout();
+      toast.success('Signed out successfully.');
+      router.push('/');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to sign out.');
+    }
+  }
+
+  function handleOpenCart() {
+    if (!isAuthenticated) {
+      toast.error('Sign in as a customer to use cart and checkout.');
+      router.push('/login?next=/menu');
+      return;
+    }
+
+    if (user?.is_staff) {
+      toast.error('Staff accounts cannot checkout. Use a customer account.');
+      return;
+    }
+
+    setIsOpen(true);
+  }
+
+  function isActive(path: string) {
+    if (path === '/') {
+      return pathname === path;
+    }
+    return pathname.startsWith(path);
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-woodAccent/40 bg-cream/95 backdrop-blur">
-      <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Main">
+      <nav className="page-shell flex h-20 items-center justify-between" aria-label="Main">
         <Link href="/" className="font-heading text-2xl tracking-wide text-tableBrown" aria-label="Calm Table home">
           Calm Table
         </Link>
 
-        <ul className="hidden items-center gap-7 md:flex">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={cn(
-                    'text-sm font-medium uppercase tracking-wider text-tableBrown/90 hover:text-tableBrown',
-                    isActive && 'text-tableBrown underline decoration-woodAccent underline-offset-8'
-                  )}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            );
-          })}
+        <ul className="hidden items-center gap-6 md:flex">
+          {[...primaryLinks, ...authLinks].map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className={cn(
+                  'text-xs font-semibold uppercase tracking-[0.15em] text-tableBrown/90 hover:text-tableBrown',
+                  isActive(link.href) && 'text-tableBrown underline decoration-woodAccent underline-offset-8'
+                )}
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
         </ul>
 
-        <div className="hidden md:block">
-          <Button variant="ghost" aria-label="Restaurant opening hours" className="pointer-events-none opacity-80">
-            Open Daily 5PM-10PM
+        <div className="hidden items-center gap-2 md:flex">
+          <Button
+            variant="secondary"
+            size="sm"
+            aria-label="Open cart drawer"
+            onClick={handleOpenCart}
+            className="relative"
+          >
+            <ShoppingBag size={15} />
+            Cart
+            {itemCount > 0 && (
+              <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-tableBrown px-1 text-[10px] text-white">
+                {itemCount}
+              </span>
+            )}
           </Button>
+          {isAuthenticated && (
+            <Button variant="ghost" size="sm" onClick={handleLogout} aria-label="Logout from your account">
+              Logout
+            </Button>
+          )}
         </div>
 
         <button
@@ -70,24 +135,48 @@ export function Navigation() {
             exit={{ opacity: 0, y: -8 }}
             className="border-t border-woodAccent/40 bg-cream md:hidden"
           >
-            <ul className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 sm:px-6">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href;
-                return (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className={cn(
-                        'block rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-wider text-tableBrown',
-                        isActive ? 'bg-warmGray' : 'hover:bg-warmGray/70'
-                      )}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                );
-              })}
+            <ul className="page-shell flex flex-col gap-2 py-4">
+              {[...primaryLinks, ...authLinks].map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className={cn(
+                      'block rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-wider text-tableBrown',
+                      isActive(link.href) ? 'bg-warmGray' : 'hover:bg-warmGray/70'
+                    )}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider text-tableBrown hover:bg-warmGray/70"
+                  onClick={() => {
+                    handleOpenCart();
+                    setMobileOpen(false);
+                  }}
+                >
+                  <span>Cart</span>
+                  <span>{itemCount}</span>
+                </button>
+              </li>
+              {isAuthenticated && (
+                <li>
+                  <button
+                    type="button"
+                    className="block w-full rounded-xl px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider text-tableBrown hover:bg-warmGray/70"
+                    onClick={() => {
+                      void handleLogout();
+                      setMobileOpen(false);
+                    }}
+                  >
+                    Logout
+                  </button>
+                </li>
+              )}
             </ul>
           </motion.div>
         )}

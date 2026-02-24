@@ -47,7 +47,7 @@ export default function ReservationLookupPage({ params }: ReservationLookupPageP
   }, [initialCode]);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="page-shell py-10">
       <SectionHeading
         eyebrow="Reservation Lookup"
         title="Find Your Booking"

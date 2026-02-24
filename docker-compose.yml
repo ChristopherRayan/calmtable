@@ -55,8 +55,14 @@ services:
         condition: service_started
     ports:
       - '8000:8000'
+    volumes:
+      - backend-static:/app/staticfiles
     healthcheck:
-      test: ['CMD-SHELL', 'python manage.py check > /dev/null 2>&1 || exit 1']
+      test:
+        [
+          'CMD-SHELL',
+          'python -c "import socket; s = socket.create_connection((\"127.0.0.1\", 8000), timeout=3); s.close()" || exit 1',
+        ]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -98,6 +104,7 @@ services:
       - '80:80'
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - backend-static:/var/www/static:ro
     healthcheck:
       test: ['CMD-SHELL', 'wget -q --spider http://127.0.0.1/ || exit 1']
       interval: 15s
@@ -108,3 +115,4 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  backend-static:

@@ -25,6 +25,32 @@ PY
 fi
 
 python manage.py migrate --noinput
-python manage.py seed_data
+python manage.py collectstatic --noinput
+python manage.py seed_data --reset
+
+if [ "${CREATE_SUPERUSER:-True}" = "True" ]; then
+  python - <<'PY'
+import os
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
+
+import django
+django.setup()
+
+from django.contrib.auth import get_user_model
+
+username = os.getenv("DJANGO_SUPERUSER_USERNAME", "admin@calmtable.mw")
+email = os.getenv("DJANGO_SUPERUSER_EMAIL", "admin@calmtable.mw")
+password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "password123")
+
+User = get_user_model()
+
+if not User.objects.filter(username=username).exists():
+    User.objects.create_superuser(username=username, email=email, password=password)
+    print(f"Created superuser: {username} ({email})")
+else:
+    print(f"Superuser already exists: {username}")
+PY
+fi
 
 exec "$@"

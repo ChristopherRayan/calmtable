@@ -11,6 +11,8 @@ export interface MenuItem {
   is_available: boolean;
   is_featured: boolean;
   dietary_tags: string[];
+  average_rating: number | null;
+  ordered_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -45,4 +47,100 @@ export interface AvailableSlotsResponse {
   available_slots: string[];
   full_slots: string[];
   max_reservations_per_slot: number;
+}
+
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_staff: boolean;
+  role: 'admin' | 'customer';
+}
+
+export interface AuthResponse {
+  user: AuthUser;
+  access: string;
+  refresh: string;
+}
+
+export interface RegisterPayload {
+  username: string;
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface Review {
+  id: number;
+  menu_item: number;
+  user_name: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+}
+
+export interface ReviewCreatePayload {
+  menu_item: number;
+  rating: number;
+  comment: string;
+}
+
+export interface OrderCreateItemPayload {
+  menu_item_id: number;
+  quantity: number;
+}
+
+export interface OrderCreatePayload {
+  email?: string;
+  items: OrderCreateItemPayload[];
+}
+
+export interface OrderItem {
+  id: number;
+  menu_item: number;
+  menu_item_name: string;
+  quantity: number;
+  unit_price: string;
+  line_total: string;
+}
+
+export type OrderStatus = 'pending' | 'paid' | 'cancelled';
+
+export interface Order {
+  id: number;
+  email: string;
+  status: OrderStatus;
+  total_amount: string;
+  stripe_payment_intent_id: string;
+  client_secret?: string;
+  items: OrderItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AnalyticsDishVolume {
+  menu_item_id: number;
+  name: string;
+  quantity: number;
+}
+
+export interface AnalyticsReservationPoint {
+  date: string;
+  count: number;
+}
+
+export interface AnalyticsPayload {
+  todays_reservations: number;
+  total_revenue: string;
+  top_dishes: AnalyticsDishVolume[];
+  reservation_volume: AnalyticsReservationPoint[];
+  dish_volume: AnalyticsDishVolume[];
 }

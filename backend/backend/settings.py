@@ -10,6 +10,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     USE_SQLITE=(bool, True),
     MAX_RESERVATIONS_PER_SLOT=(int, 3),
+    CELERY_TASK_ALWAYS_EAGER=(bool, False),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -28,6 +29,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "drf_spectacular",
     "api",
@@ -95,7 +97,7 @@ TIME_ZONE = env("TIME_ZONE", default="UTC")
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -153,6 +155,12 @@ EMAIL_BACKEND = env(
     default="django.core.mail.backends.console.EmailBackend",
 )
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@calmtable.local")
+SITE_BASE_URL = env("SITE_BASE_URL", default="http://localhost")
+SENDGRID_API_KEY = env("SENDGRID_API_KEY", default="")
+SENDGRID_FROM_EMAIL = env("SENDGRID_FROM_EMAIL", default="")
+
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
+STRIPE_CURRENCY = env("STRIPE_CURRENCY", default="usd")
 
 REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_URL)
@@ -161,3 +169,4 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_ALWAYS_EAGER = env("CELERY_TASK_ALWAYS_EAGER")

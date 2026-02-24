@@ -26,6 +26,11 @@ calm-table/
    - Front door (nginx): `http://localhost`
    - Backend API (proxied): `http://localhost/api/`
    - Frontend (direct): `http://localhost:3000`
+   - Django admin: `http://localhost/admin/`
+4. Dev admin login:
+   - Username: `admin@calmtable.mw`
+   - Email (for staff dashboard login): `admin@calmtable.mw`
+   - Password: `password123`
 
 ## Manual Setup (Without Docker)
 
@@ -46,4 +51,8 @@ calm-table/
 ## Notes
 
 - Do not commit secrets. Use `.env` files locally and CI/CD secrets in GitHub.
+- Admin user is auto-created on startup when `CREATE_SUPERUSER=True` in `backend/.env`.
+- Roles:
+  - `admin` / staff users can access Django admin and staff dashboard.
+  - `customer` users must register/sign in to book tables, checkout cart orders, and submit menu reviews.
 - Docker and CI configs are scaffolded in STEP 1 and will be fully implemented in subsequent steps.

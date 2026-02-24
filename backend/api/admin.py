@@ -1,8 +1,8 @@
-"""Admin configuration for menu and reservation management."""
+"""Admin configuration for menu, reservations, reviews, and orders."""
 from django import forms
 from django.contrib import admin
 
-from .models import MenuItem, Reservation
+from .models import MenuItem, Order, OrderItem, Reservation, Review
 
 
 class MenuItemAdminForm(forms.ModelForm):
@@ -49,6 +49,7 @@ class ReservationAdmin(admin.ModelAdmin):
 
     list_display = (
         "name",
+        "user",
         "date",
         "time_slot",
         "party_size",
@@ -62,8 +63,49 @@ class ReservationAdmin(admin.ModelAdmin):
 
     @admin.action(description="Mark selected reservations as confirmed")
     def mark_confirmed(self, request, queryset):
-        queryset.update(status=Reservation.Status.CONFIRMED)
+        for reservation in queryset:
+            reservation.status = Reservation.Status.CONFIRMED
+            reservation.save(update_fields=["status"])
 
     @admin.action(description="Mark selected reservations as cancelled")
     def mark_cancelled(self, request, queryset):
-        queryset.update(status=Reservation.Status.CANCELLED)
+        for reservation in queryset:
+            reservation.status = Reservation.Status.CANCELLED
+            reservation.save(update_fields=["status"])
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    """Admin table for menu item reviews and ratings."""
+
+    list_display = ("menu_item", "user", "rating", "created_at")
+    list_filter = ("rating", "created_at")
+    search_fields = ("menu_item__name", "user__username", "comment")
+
+
+class OrderItemInline(admin.TabularInline):
+    """Inline order item rows for order admin page."""
+
+    model = OrderItem
+    extra = 0
+    readonly_fields = ("line_total",)
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    """Admin table for customer orders and payment status."""
+
+    list_display = ("id", "email", "status", "total_amount", "created_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("email", "stripe_payment_intent_id")
+    readonly_fields = ("created_at", "updated_at", "stripe_payment_intent_id")
+    inlines = (OrderItemInline,)
+    actions = ("mark_paid", "mark_cancelled")
+
+    @admin.action(description="Mark selected orders as paid")
+    def mark_paid(self, request, queryset):
+        queryset.update(status=Order.Status.PAID)
+
+    @admin.action(description="Mark selected orders as cancelled")
+    def mark_cancelled(self, request, queryset):
+        queryset.update(status=Order.Status.CANCELLED)

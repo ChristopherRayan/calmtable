@@ -1,28 +1,40 @@
 // Menu dish card for grid galleries with dietary tags and availability.
 import Image from 'next/image';
+import { ShoppingBag } from 'lucide-react';
 
 import { Badge } from '@/components/badge';
+import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { StarRatingDisplay } from '@/components/star-rating';
+import { formatKwacha } from '@/lib/currency';
 import type { MenuItem } from '@/lib/types';
 
 interface MenuDishCardProps {
   item: MenuItem;
+  onAddToCart?: (item: MenuItem) => void;
 }
 
-const fallbackImage =
-  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80';
+export function MenuDishCard({ item, onAddToCart }: MenuDishCardProps) {
+  const hasImage = Boolean(item.image_url);
 
-export function MenuDishCard({ item }: MenuDishCardProps) {
   return (
     <Card className="p-0 overflow-hidden" elevated>
       <div className="relative h-44 w-full">
-        <Image
-          src={item.image_url || fallbackImage}
-          alt={item.name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 30vw"
-        />
+        {hasImage ? (
+          <Image
+            src={item.image_url}
+            alt={item.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 30vw"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#eadcc8] via-[#f5f0ea] to-[#d9c5a9]">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-tableBrown/80">
+              Image managed in admin
+            </p>
+          </div>
+        )}
         {!item.is_available && (
           <div className="absolute inset-0 grid place-items-center bg-black/50">
             <Badge tone="accent">Sold Out</Badge>
@@ -32,8 +44,13 @@ export function MenuDishCard({ item }: MenuDishCardProps) {
       <div className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-heading text-xl text-tableBrown">{item.name}</h3>
-          <span className="text-sm font-semibold text-tableBrown">${Number(item.price).toFixed(2)}</span>
+          <span className="text-sm font-semibold text-tableBrown">{formatKwacha(item.price)}</span>
         </div>
+        {typeof item.average_rating === 'number' ? (
+          <StarRatingDisplay rating={item.average_rating} />
+        ) : (
+          <p className="text-xs text-tableBrown/70">No reviews yet</p>
+        )}
         <p className="text-sm text-[#4B3A32]">{item.description}</p>
         {item.dietary_tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -44,6 +61,16 @@ export function MenuDishCard({ item }: MenuDishCardProps) {
             ))}
           </div>
         )}
+        <Button
+          className="w-full"
+          size="sm"
+          onClick={() => onAddToCart?.(item)}
+          disabled={!item.is_available}
+          aria-label={`Add ${item.name} to cart`}
+        >
+          <ShoppingBag size={14} />
+          {item.is_available ? 'Add to Cart' : 'Unavailable'}
+        </Button>
       </div>
     </Card>
   );

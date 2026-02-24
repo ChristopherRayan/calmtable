@@ -3,11 +3,13 @@
 
 import { addDays, format, formatISO, isBefore, parseISO, startOfDay } from 'date-fns';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { z } from 'zod';
 
+import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { SectionHeading } from '@/components/section-heading';
@@ -28,6 +30,7 @@ const guestDetailsSchema = z.object({
 type GuestDetailsForm = z.infer<typeof guestDetailsSchema>;
 
 export default function BookPage() {
+  const { user, loading, isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [partySize, setPartySize] = useState(2);
@@ -41,6 +44,7 @@ export default function BookPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<GuestDetailsForm>({
     defaultValues: {
@@ -53,6 +57,18 @@ export default function BookPage() {
 
   const minDate = format(new Date(), 'yyyy-MM-dd');
   const maxDate = format(addDays(new Date(), 60), 'yyyy-MM-dd');
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    setValue('email', user.email);
+    const fullName = `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim();
+    if (fullName) {
+      setValue('name', fullName);
+    }
+  }, [setValue, user]);
 
   useEffect(() => {
     async function loadSlots() {
@@ -131,8 +147,75 @@ export default function BookPage() {
     }
   });
 
+  if (loading) {
+    return (
+      <div className="page-shell py-10">
+        <SectionHeading
+          eyebrow="Reservations"
+          title="Book Your Table"
+          description="A simple step-by-step flow to secure your preferred dining time."
+        />
+        <Card elevated className="mt-6 text-sm text-tableBrown/80">
+          Loading account details...
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="page-shell py-10">
+        <SectionHeading
+          eyebrow="Reservations"
+          title="Book Your Table"
+          description="Customer registration is required before creating reservations."
+        />
+        <Card elevated className="mt-6 space-y-4">
+          <p className="text-sm text-tableBrown/85">
+            Sign in or create a customer account to book, checkout, and leave menu reviews.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/login?next=/book"
+              className="inline-flex rounded-full bg-tableBrown px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-tableBrownLight"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/login?mode=register"
+              className="inline-flex rounded-full border border-woodAccent bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-tableBrown hover:bg-warmGray"
+            >
+              Register Customer
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (user?.is_staff) {
+    return (
+      <div className="page-shell py-10">
+        <SectionHeading
+          eyebrow="Reservations"
+          title="Book Your Table"
+          description="Staff and admin accounts cannot create customer reservations."
+        />
+        <Card elevated className="mt-6 space-y-3 text-sm text-tableBrown/85">
+          <p>Please sign in with a customer account to continue booking.</p>
+          <Link
+            href="/login?next=/book"
+            className="inline-flex rounded-full bg-tableBrown px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-tableBrownLight"
+          >
+            Switch Account
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="page-shell py-10">
       <SectionHeading
         eyebrow="Reservations"
         title="Book Your Table"
@@ -252,12 +335,13 @@ export default function BookPage() {
                   <label htmlFor="email" className="text-sm font-medium text-tableBrown">
                     Email
                   </label>
-                  <input
-                    id="email"
-                    type="email"
-                    {...register('email')}
-                    className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
-                  />
+                <input
+                  id="email"
+                  type="email"
+                  {...register('email')}
+                  readOnly
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                />
                   {errors.email && <p className="text-xs text-[#8E4A3A]">{errors.email.message}</p>}
                 </div>
 

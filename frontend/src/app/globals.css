@@ -40,3 +40,30 @@ button,
 a {
   transition: all 150ms ease;
 }
+
+.page-shell {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .page-shell {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-shell {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .page-shell {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
