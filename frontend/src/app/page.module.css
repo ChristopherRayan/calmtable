@@ -52,7 +52,7 @@
   padding: 0 1rem 5.5rem;
   text-align: center;
   margin-inline: auto;
-  transform: translateY(-20%);
+  transform: translateY(-24%);
 }
 
 .heroEyebrow {
@@ -68,7 +68,7 @@
   margin: 0;
   color: #fdfbf7;
   font-family: var(--font-playfair), serif;
-  font-size: clamp(1.14rem, 2.64vw, 2.64rem);
+  font-size: clamp(1.37rem, 3.17vw, 3.17rem);
   font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.012em;
@@ -894,7 +894,7 @@
 
   .heroTitle {
     max-width: 100%;
-    font-size: clamp(0.96rem, 4.56vw, 1.5rem);
+    font-size: clamp(1.15rem, 5.47vw, 1.8rem);
     line-height: 1.14;
     letter-spacing: -0.008em;
   }

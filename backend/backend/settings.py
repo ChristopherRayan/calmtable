@@ -216,7 +216,7 @@ JAZZMIN_SETTINGS = {
         "token_blacklist.outstandingtoken": "fas fa-key",
     },
     "custom_css": "css/admin_custom.css",
-    "custom_js": "js/admin_custom.js",
+    "custom_js": "js/admin_custom_v2.js",
     "show_ui_builder": False,
 }
 
