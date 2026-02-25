@@ -24,7 +24,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/components/auth-provider';
 import { useCart } from '@/components/cart-provider';
 import { useTheme } from '@/components/theme-provider';
-import { shouldSkipImageOptimization } from '@/lib/image';
+import { normalizeImageSource, shouldSkipImageOptimization } from '@/lib/image';
 import {
   fetchAdminNotifications,
   markAdminNotificationRead,
@@ -36,7 +36,6 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/menu', label: 'Menu' },
-  { href: '/about', label: 'About Us' },
   { href: '/members', label: 'Members' },
   { href: '/book', label: 'Book a Table' },
   { href: '/contact', label: 'Contact' },
@@ -78,6 +77,10 @@ export function Navigation() {
     const composed = `${user.first_name} ${user.last_name}`.trim();
     return composed || user.username || user.email;
   }, [user]);
+  const profileImageSrc = useMemo(
+    () => normalizeImageSource(user?.profile_image_url ?? ''),
+    [user?.profile_image_url]
+  );
   const profileInitials = initialsFromUserName(profileName || 'CT');
 
   useEffect(() => {
@@ -372,15 +375,15 @@ export function Navigation() {
                 }}
                 aria-label="Account menu"
               >
-                {user?.profile_image_url ? (
+                {profileImageSrc ? (
                   <span className="relative block h-full w-full overflow-hidden rounded-full">
                     <Image
-                      src={user.profile_image_url}
+                      src={profileImageSrc}
                       alt="Profile avatar"
                       fill
                       className="object-cover"
                       sizes="40px"
-                      unoptimized={shouldSkipImageOptimization(user.profile_image_url)}
+                      unoptimized={shouldSkipImageOptimization(profileImageSrc)}
                     />
                   </span>
                 ) : (

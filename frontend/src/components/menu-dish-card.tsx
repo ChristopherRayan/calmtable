@@ -7,7 +7,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { StarRatingDisplay } from '@/components/star-rating';
 import { formatKwacha } from '@/lib/currency';
-import { shouldSkipImageOptimization } from '@/lib/image';
+import { normalizeImageSource, shouldSkipImageOptimization } from '@/lib/image';
 import type { MenuItem } from '@/lib/types';
 
 interface MenuDishCardProps {
@@ -16,19 +16,20 @@ interface MenuDishCardProps {
 }
 
 export function MenuDishCard({ item, onAddToCart }: MenuDishCardProps) {
-  const hasImage = Boolean(item.image_url);
+  const imageSrc = normalizeImageSource(item.image_url);
+  const hasImage = Boolean(imageSrc);
 
   return (
     <Card className="p-0 overflow-hidden" elevated>
       <div className="relative h-44 w-full">
         {hasImage ? (
           <Image
-            src={item.image_url}
+            src={imageSrc}
             alt={item.name}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 30vw"
-            unoptimized={shouldSkipImageOptimization(item.image_url)}
+            unoptimized={shouldSkipImageOptimization(imageSrc)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-warmGray via-cream to-tableBrown/30">

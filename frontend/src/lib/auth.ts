@@ -1,5 +1,6 @@
 // Browser auth session utilities for JWT token and profile persistence.
 import type { AuthUser } from '@/lib/types';
+import { normalizeImageSource } from '@/lib/image';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -89,7 +90,7 @@ export function getStoredUser(): AuthUser | null {
       first_name: String(parsed.first_name ?? ''),
       last_name: String(parsed.last_name ?? ''),
       phone: String(parsed.phone ?? ''),
-      profile_image_url: String(parsed.profile_image_url ?? ''),
+      profile_image_url: normalizeImageSource(String(parsed.profile_image_url ?? '')),
       is_staff: Boolean(parsed.is_staff),
       role,
     };

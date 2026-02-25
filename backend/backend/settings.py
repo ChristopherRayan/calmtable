@@ -20,6 +20,7 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 INSTALLED_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -99,6 +100,7 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -183,3 +185,41 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ALWAYS_EAGER = env("CELERY_TASK_ALWAYS_EAGER")
+
+JAZZMIN_SETTINGS = {
+    "site_title": "The CalmTable Admin",
+    "site_header": "The CalmTable Administration",
+    "site_brand": "The CalmTable",
+    "site_logo": None,
+    "welcome_sign": "Welcome to The CalmTable admin dashboard",
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index"},
+        {"name": "View Site", "url": "/", "new_window": True},
+    ],
+    "icons": {
+        "api.menuitem": "fas fa-utensils",
+        "api.reservation": "fas fa-calendar-check",
+        "api.order": "fas fa-receipt",
+        "api.orderitem": "fas fa-list-ul",
+        "api.review": "fas fa-star",
+        "api.userprofile": "fas fa-user-circle",
+        "api.adminnotification": "fas fa-bell",
+        "api.frontendsettings": "fas fa-sliders-h",
+        "auth.user": "fas fa-users-cog",
+        "auth.group": "fas fa-user-shield",
+        "token_blacklist.blacklistedtoken": "fas fa-ban",
+        "token_blacklist.outstandingtoken": "fas fa-key",
+    },
+    "custom_css": "css/admin_custom.css",
+    "custom_js": "js/admin_custom.js",
+    "show_ui_builder": True,
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "darkly",
+    "dark_mode_theme": "darkly",
+    "sidebar": "sidebar-dark-primary",
+    "navbar": "navbar-dark",
+    "navbar_fixed": True,
+    "sidebar_fixed": True,
+}

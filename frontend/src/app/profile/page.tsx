@@ -11,7 +11,7 @@ import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { SectionHeading } from '@/components/section-heading';
-import { shouldSkipImageOptimization } from '@/lib/image';
+import { normalizeImageSource, shouldSkipImageOptimization } from '@/lib/image';
 
 const schema = z.object({
   first_name: z.string().trim().max(150, 'First name is too long.'),
@@ -34,7 +34,7 @@ export default function ProfilePage() {
     if (clearAvatar) {
       return '';
     }
-    return user?.profile_image_url ?? '';
+    return normalizeImageSource(user?.profile_image_url ?? '');
   }, [clearAvatar, selectedImage, user?.profile_image_url]);
 
   const {

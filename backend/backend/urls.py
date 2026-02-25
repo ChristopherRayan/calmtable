@@ -1,15 +1,13 @@
 """Root URL configuration for Calm Table backend."""
-from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from api.admin_views import admin_analytics_data
+from api.admin import custom_admin_site
 
 urlpatterns = [
-    path("admin/analytics-data/", admin_analytics_data, name="admin-analytics-data"),
-    path("admin/", admin.site.urls),
+    path("admin/", custom_admin_site.urls),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="api-docs"),
     path("api/", include("api.urls")),

@@ -1,78 +1,105 @@
-{# Custom Django admin index with operational analytics graphs. #}
-{% extends "admin/base_site.html" %}
-{% load i18n static %}
-
-{% block extrastyle %}
-  {{ block.super }}
-  <link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">
-{% endblock %}
+{# Custom admin dashboard index with stats, trends, and recent activity. #}
+{% extends "admin/index.html" %}
+{% load static %}
 
 {% block extrahead %}
   {{ block.super }}
-  <script src="{% static 'admin/js/calm_admin_analytics.js' %}" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .ct-admin-wrap { margin: 0 0 22px 0; }
+    .ct-inline-card {
+      background: linear-gradient(135deg, rgba(29,37,52,0.95), rgba(23,29,40,0.92));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.24);
+      padding: 16px;
+    }
+    .ct-inline-title { margin: 0 0 6px 0; font-size: 18px; color: #f4f6f8; }
+    .ct-inline-sub { margin: 0; color: rgba(244,246,248,0.68); font-size: 12px; }
+    .ct-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .ct-stat { border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; background: rgba(255,255,255,0.03); }
+    .ct-stat-label { font-size: 11px; opacity: 0.7; letter-spacing: 0.08em; text-transform: uppercase; margin: 0; }
+    .ct-stat-value { font-size: 28px; font-weight: 700; margin: 8px 0 0; color: #ffffff; }
+    .ct-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 12px;
+    }
+    .ct-table { width: 100%; border-collapse: collapse; }
+    .ct-table th, .ct-table td {
+      padding: 9px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 12px;
+      text-align: left;
+    }
+    .ct-table th { opacity: 0.72; text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
+    @media (max-width: 1200px) {
+      .ct-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ct-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
-  <section class="ct-analytics" data-admin-analytics="true" data-analytics-url="{% url 'admin-analytics-data' %}">
-    <div class="ct-analytics-header">
-      <h2 class="ct-analytics-title">Live Operations Analytics</h2>
-      <p class="ct-analytics-subtitle">Real-time insight across reservations, orders, revenue, and top dishes.</p>
-    </div>
+  <section class="ct-admin-wrap">
+    <div class="ct-inline-card">
+      <h2 class="ct-inline-title">Operational Dashboard</h2>
+      <p class="ct-inline-sub">Live overview of reservations, orders, reviews, and system activity.</p>
 
-    <div class="ct-analytics-summary">
-      <article class="ct-summary-card">
-        <p class="ct-summary-label">Today's Reservations</p>
-        <p class="ct-summary-value" id="ct-summary-reservations">-</p>
-      </article>
-      <article class="ct-summary-card">
-        <p class="ct-summary-label">Total Revenue</p>
-        <p class="ct-summary-value" id="ct-summary-revenue">-</p>
-      </article>
-      <article class="ct-summary-card">
-        <p class="ct-summary-label">Total Orders</p>
-        <p class="ct-summary-value" id="ct-summary-orders">-</p>
-      </article>
-      <article class="ct-summary-card">
-        <p class="ct-summary-label">Paid Orders</p>
-        <p class="ct-summary-value" id="ct-summary-paid-orders">-</p>
-      </article>
-    </div>
+      <div class="ct-stats">
+        {% for card in dashboard_cards %}
+          <article class="ct-stat">
+            <p class="ct-stat-label">{{ card.label }}</p>
+            <p class="ct-stat-value">{{ card.value }}</p>
+          </article>
+        {% endfor %}
+      </div>
 
-    <div class="ct-analytics-grid">
-      <article class="ct-chart-card">
-        <header class="ct-chart-header">
-          <h3>Reservations (Last 14 Days)</h3>
-        </header>
-        <svg id="ct-reservation-chart" class="ct-chart-svg" viewBox="0 0 600 220" role="img" aria-label="Reservations trend chart"></svg>
-      </article>
+      <div class="ct-grid">
+        <article class="ct-inline-card" style="background: rgba(255,255,255,0.02);">
+          <h3 class="ct-inline-title" style="font-size:15px;">Monthly Trends (Last 6 Months)</h3>
+          <canvas id="ct-monthly-trends" height="110"></canvas>
+          <script id="ct-admin-analytics-data" type="application/json">{{ analytics_json|safe }}</script>
+        </article>
 
-      <article class="ct-chart-card">
-        <header class="ct-chart-header">
-          <h3>Revenue (Last 14 Days)</h3>
-        </header>
-        <svg id="ct-revenue-chart" class="ct-chart-svg" viewBox="0 0 600 220" role="img" aria-label="Revenue trend chart"></svg>
-      </article>
-
-      <article class="ct-chart-card">
-        <header class="ct-chart-header">
-          <h3>Top Ordered Dishes</h3>
-        </header>
-        <div id="ct-top-dishes-chart" class="ct-bar-chart"></div>
-      </article>
-
-      <article class="ct-chart-card">
-        <header class="ct-chart-header">
-          <h3>Order Status Mix</h3>
-        </header>
-        <div class="ct-donut-wrap">
-          <div id="ct-status-donut" class="ct-donut-chart" aria-label="Order status donut chart"></div>
-          <ul id="ct-status-legend" class="ct-status-legend"></ul>
-        </div>
-      </article>
+        <article class="ct-inline-card" style="background: rgba(255,255,255,0.02);">
+          <h3 class="ct-inline-title" style="font-size:15px;">Recent Activity</h3>
+          <table class="ct-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in recent_activity %}
+                <tr>
+                  <td>{{ row.confirmation_code }}</td>
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.date }} {{ row.time_slot }}</td>
+                  <td>{{ row.status|title }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4">No activity found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </article>
+      </div>
     </div>
   </section>
 
-  <div id="content-main">
-    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
-  </div>
+  {{ block.super }}
 {% endblock %}

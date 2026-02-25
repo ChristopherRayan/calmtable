@@ -323,10 +323,6 @@ class Review(models.Model):
     def __str__(self) -> str:
         return f"Review<{self.menu_item_id}:{self.user_id}>"
 
-    def clean(self) -> None:
-        if not Reservation.user_has_completed_reservation(self.user):
-            raise ValidationError("Only verified diners with completed reservations can leave reviews.")
-
 
 class Order(models.Model):
     """A customer order and Stripe payment tracking record."""
