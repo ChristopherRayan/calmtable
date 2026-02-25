@@ -3,14 +3,18 @@
 
 import { useEffect, useState } from 'react';
 
+import Image from 'next/image';
+
 import { Card } from '@/components/card';
 import { SectionHeading } from '@/components/section-heading';
 import { defaultFrontendSettings } from '@/lib/frontend-settings';
-import { fetchFrontendSettings } from '@/lib/services';
-import type { FrontendContentPayload } from '@/lib/types';
+import { fetchFrontendSettings, fetchPublicMembers } from '@/lib/services';
+import { normalizeImageSource, shouldSkipImageOptimization } from '@/lib/image';
+import type { FrontendContentPayload, MembersResponseItem } from '@/lib/types';
 
 export default function MembersPage() {
   const [settings, setSettings] = useState<FrontendContentPayload>(defaultFrontendSettings);
+  const [staffMembers, setStaffMembers] = useState<MembersResponseItem[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -26,6 +30,27 @@ export default function MembersPage() {
     }
 
     void loadSettings();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    async function loadMembers() {
+      try {
+        const data = await fetchPublicMembers();
+        if (active) {
+          setStaffMembers(data);
+        }
+      } catch (_error) {
+        if (active) {
+          setStaffMembers([]);
+        }
+      }
+    }
+
+    void loadMembers();
     return () => {
       active = false;
     };
@@ -49,6 +74,59 @@ export default function MembersPage() {
           </Card>
         ))}
       </div>
+
+      <div className="mt-12">
+        <SectionHeading
+          eyebrow="Team"
+          title="Meet Our Staff"
+          description="Managed directly from admin and displayed publicly when enabled."
+        />
+      </div>
+
+      {staffMembers.length === 0 ? (
+        <Card elevated className="mt-6 text-center text-sm text-tableBrown/80">
+          Staff profiles will appear here once published by admin.
+        </Card>
+      ) : (
+        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {staffMembers.map((member) => {
+            const imageSrc = normalizeImageSource(member.photo ?? '');
+            const initials = member.name
+              .split(' ')
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part[0]?.toUpperCase() ?? '')
+              .join('');
+            return (
+              <Card key={member.id} elevated className="border border-woodAccent/25 bg-warmGray/90">
+                <div className="flex items-center gap-3">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-full border border-woodAccent/40 bg-cream">
+                    {imageSrc ? (
+                      <Image
+                        src={imageSrc}
+                        alt={member.name}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                        unoptimized={shouldSkipImageOptimization(imageSrc)}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-tableBrown">
+                        {initials}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-tableBrown">{member.name}</p>
+                    <p className="text-xs uppercase tracking-[0.08em] text-muted">{member.role}</p>
+                  </div>
+                </div>
+                {member.bio ? <p className="mt-3 text-sm text-ink/80">{member.bio}</p> : null}
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

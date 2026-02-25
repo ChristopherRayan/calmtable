@@ -6,6 +6,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     AdminNotificationViewSet,
     AnalyticsAPIView,
+    AnalyticsOrdersPerDayAPIView,
+    AnalyticsRevenueAPIView,
     AvailableSlotsAPIView,
     FrontendSettingsAPIView,
     LoginAPIView,
@@ -14,6 +16,8 @@ from .views import (
     MenuItemViewSet,
     MyReservationsAPIView,
     OrderViewSet,
+    OrderReceiptAPIView,
+    PublicMembersAPIView,
     RegisterAPIView,
     ReservationViewSet,
     ReviewViewSet,
@@ -30,6 +34,8 @@ urlpatterns = [
     path("", include(router.urls)),
     path("frontend-settings/", FrontendSettingsAPIView.as_view(), name="frontend-settings"),
     path("available-slots/", AvailableSlotsAPIView.as_view(), name="available-slots"),
+    path("orders/<str:order_number>/receipt/", OrderReceiptAPIView.as_view(), name="order-receipt"),
+    path("members/", PublicMembersAPIView.as_view(), name="public-members"),
     path("auth/register/", RegisterAPIView.as_view(), name="auth-register"),
     path("auth/login/", LoginAPIView.as_view(), name="auth-login"),
     path("auth/logout/", LogoutAPIView.as_view(), name="auth-logout"),
@@ -37,4 +43,6 @@ urlpatterns = [
     path("auth/me/", MeAPIView.as_view(), name="auth-me"),
     path("my-reservations/", MyReservationsAPIView.as_view(), name="my-reservations"),
     path("analytics/", AnalyticsAPIView.as_view(), name="analytics"),
+    path("analytics/orders-per-day/", AnalyticsOrdersPerDayAPIView.as_view(), name="analytics-orders-per-day"),
+    path("analytics/revenue/", AnalyticsRevenueAPIView.as_view(), name="analytics-revenue"),
 ]

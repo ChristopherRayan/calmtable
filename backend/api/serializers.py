@@ -1,4 +1,5 @@
 """Serializers for auth, menu, reservations, reviews, orders, and analytics."""
+
 from django.contrib.auth import authenticate, get_user_model
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
@@ -74,11 +75,18 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     """Serializer for JWT login credentials."""
 
-    email = serializers.CharField()
+    email = serializers.CharField(required=False, allow_blank=True)
+    username = serializers.CharField(required=False, allow_blank=True)
+    identifier = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        identifier = attrs["email"].strip()
+        identifier = (
+            attrs.get("identifier")
+            or attrs.get("email")
+            or attrs.get("username")
+            or ""
+        ).strip()
         password = attrs["password"]
 
         if not identifier:
@@ -91,6 +99,9 @@ class LoginSerializer(serializers.Serializer):
 
         if not user:
             raise serializers.ValidationError("Invalid email or password.")
+
+        if not user.is_active:
+            raise serializers.ValidationError("This account is deactivated. Please contact support.")
 
         authenticated_user = authenticate(
             request=self.context.get("request"),
@@ -107,9 +118,11 @@ class LoginSerializer(serializers.Serializer):
 class AdminNotificationSerializer(serializers.ModelSerializer):
     """Serializer for staff notifications feed."""
 
+    order_number = serializers.CharField(source="order.order_number", read_only=True)
+
     class Meta:
         model = AdminNotification
-        fields = ("id", "title", "message", "payload", "is_read", "created_at")
+        fields = ("id", "title", "message", "notif_type", "payload", "is_read", "created_at", "order_number")
 
 
 class FrontendSettingsSerializer(serializers.ModelSerializer):
@@ -276,18 +289,46 @@ class ReviewSerializer(serializers.ModelSerializer):
 class OrderItemInputSerializer(serializers.Serializer):
     """Input payload for a single order line item."""
 
-    menu_item_id = serializers.IntegerField()
-    quantity = serializers.IntegerField(min_value=1, max_value=50)
+    menu_item_id = serializers.IntegerField(required=False)
+    name = serializers.CharField(required=False, allow_blank=True, max_length=200)
+    price_raw = serializers.DecimalField(required=False, max_digits=10, decimal_places=2)
+    quantity = serializers.IntegerField(required=False, min_value=1, max_value=50)
+    qty = serializers.IntegerField(required=False, min_value=1, max_value=50)
+
+    def validate(self, attrs):
+        quantity = attrs.get("quantity")
+        qty = attrs.get("qty")
+        attrs["quantity"] = quantity if quantity is not None else (qty if qty is not None else 1)
+
+        if not attrs.get("menu_item_id") and not attrs.get("name"):
+            raise serializers.ValidationError("Each item must include menu_item_id or name.")
+
+        return attrs
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
     """Serializer for persisted order line items."""
 
-    menu_item_name = serializers.CharField(source="menu_item.name", read_only=True)
+    menu_item_name = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
-        fields = ("id", "menu_item", "menu_item_name", "quantity", "unit_price", "line_total")
+        fields = (
+            "id",
+            "menu_item",
+            "menu_item_name",
+            "item_name",
+            "item_price",
+            "quantity",
+            "subtotal",
+            "unit_price",
+            "line_total",
+        )
+
+    def get_menu_item_name(self, obj: OrderItem) -> str:
+        if obj.menu_item:
+            return obj.menu_item.name
+        return obj.item_name
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -299,9 +340,12 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             "id",
-            "email",
+            "order_number",
+            "customer_name",
+            "customer_email",
             "status",
             "total_amount",
+            "notes",
             "stripe_payment_intent_id",
             "items",
             "created_at",
@@ -316,16 +360,21 @@ class OrderCreateSerializer(serializers.Serializer):
     items = OrderItemInputSerializer(many=True, min_length=1)
 
     def validate_items(self, items):
-        menu_item_ids = [item["menu_item_id"] for item in items]
+        menu_item_ids = [item["menu_item_id"] for item in items if item.get("menu_item_id")]
         menu_items = MenuItem.objects.filter(id__in=menu_item_ids)
         menu_item_map = {item.id: item for item in menu_items}
 
         for item in items:
-            menu_item = menu_item_map.get(item["menu_item_id"])
-            if not menu_item:
-                raise serializers.ValidationError(f"Menu item {item['menu_item_id']} does not exist.")
-            if not menu_item.is_available:
-                raise serializers.ValidationError(f"{menu_item.name} is currently unavailable.")
+            menu_item_id = item.get("menu_item_id")
+            if menu_item_id:
+                menu_item = menu_item_map.get(menu_item_id)
+                if not menu_item:
+                    raise serializers.ValidationError(f"Menu item {menu_item_id} does not exist.")
+                if not menu_item.is_available:
+                    raise serializers.ValidationError(f"{menu_item.name} is currently unavailable.")
+            else:
+                if item.get("price_raw") is None:
+                    raise serializers.ValidationError("Raw price is required when menu_item_id is not provided.")
 
         return items
 
@@ -342,25 +391,66 @@ class OrderCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError({"email": "Please set an email address on your account before checkout."})
 
         items_payload = validated_data["items"]
-        menu_items = MenuItem.objects.in_bulk([item["menu_item_id"] for item in items_payload])
+        menu_items = MenuItem.objects.in_bulk(
+            [item["menu_item_id"] for item in items_payload if item.get("menu_item_id")]
+        )
 
         with transaction.atomic():
-            order = Order.objects.create(user=user, email=email)
+            # Keep a single active pending order per customer so closely-timed
+            # checkouts are consolidated instead of creating fragmented orders.
+            order = (
+                Order.objects.select_for_update()
+                .filter(
+                    customer=user,
+                    status=Order.Status.PENDING,
+                )
+                .order_by("-created_at")
+                .first()
+            )
+            customer_name = (f"{user.first_name} {user.last_name}".strip() or user.username)
+            if not order:
+                order = Order.objects.create(
+                    customer=user,
+                    customer_name=customer_name,
+                    customer_email=email,
+                )
+            else:
+                dirty_fields = []
+                if order.customer_id != user.id:
+                    order.customer = user
+                    dirty_fields.append("customer")
+                if not order.customer_name:
+                    order.customer_name = customer_name
+                    dirty_fields.append("customer_name")
+                if not order.customer_email:
+                    order.customer_email = email
+                    dirty_fields.append("customer_email")
+                if dirty_fields:
+                    dirty_fields.append("updated_at")
+                    order.save(update_fields=dirty_fields)
             total_amount = 0
 
             for payload in items_payload:
-                menu_item = menu_items[payload["menu_item_id"]]
                 quantity = payload["quantity"]
+                menu_item = menu_items.get(payload.get("menu_item_id"))
+                item_name = payload.get("name", "")
+                item_price = payload.get("price_raw")
+                if menu_item:
+                    item_name = menu_item.name
+                    item_price = menu_item.price
                 order_item = OrderItem(
                     order=order,
                     menu_item=menu_item,
+                    item_name=item_name,
+                    item_price=item_price,
                     quantity=quantity,
-                    unit_price=menu_item.price,
+                    unit_price=item_price,
                 )
                 order_item.save()
-                total_amount += order_item.line_total
+                total_amount += order_item.subtotal
 
-            order.total_amount = total_amount
+            previous_total = order.total_amount if order.pk else Decimal("0.00")
+            order.total_amount = previous_total + total_amount
             order.save(update_fields=["total_amount", "updated_at"])
 
         return order

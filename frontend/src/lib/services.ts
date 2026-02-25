@@ -2,7 +2,8 @@
 import api from '@/lib/api';
 import type {
   AnalyticsPayload,
-  AdminNotification,
+  MembersResponseItem,
+  NotificationItem,
   AuthResponse,
   AuthUser,
   AvailableSlotsResponse,
@@ -233,19 +234,41 @@ export async function fetchOrders(): Promise<Order[]> {
   return response.data;
 }
 
-export async function fetchAdminNotifications(): Promise<AdminNotification[]> {
-  const response = await api.get<AdminNotification[]>('/notifications/');
+export async function fetchNotifications(): Promise<NotificationItem[]> {
+  const response = await api.get<NotificationItem[] | { unread?: number; notifications?: NotificationItem[] }>(
+    '/notifications/'
+  );
+  if (Array.isArray(response.data)) {
+    return response.data;
+  }
+  return response.data.notifications ?? [];
+}
+
+export async function markNotificationRead(notificationId: number): Promise<NotificationItem> {
+  const response = await api.post<NotificationItem>(`/notifications/${notificationId}/mark-read/`);
   return response.data;
 }
 
-export async function markAdminNotificationRead(notificationId: number): Promise<AdminNotification> {
-  const response = await api.post<AdminNotification>(`/notifications/${notificationId}/mark-read/`);
-  return response.data;
-}
-
-export async function markAllAdminNotificationsRead(): Promise<number> {
+export async function markAllNotificationsRead(): Promise<number> {
   const response = await api.post<{ updated: number }>('/notifications/mark-all-read/');
   return response.data.updated;
+}
+
+export async function fetchUnreadNotificationCount(): Promise<number> {
+  const response = await api.get<{ count: number }>('/notifications/unread-count/');
+  return Number(response.data.count ?? 0);
+}
+
+export async function downloadOrderReceipt(orderNumber: string): Promise<Blob> {
+  const response = await api.get(`/orders/${encodeURIComponent(orderNumber)}/receipt/`, {
+    responseType: 'blob',
+  });
+  return response.data as Blob;
+}
+
+export async function fetchPublicMembers(): Promise<MembersResponseItem[]> {
+  const response = await api.get<{ members: MembersResponseItem[] }>('/members/');
+  return response.data.members;
 }
 
 export async function fetchAnalytics(): Promise<AnalyticsPayload> {

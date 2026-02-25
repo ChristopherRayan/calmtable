@@ -110,28 +110,42 @@ export interface OrderCreateItemPayload {
 }
 
 export interface OrderCreatePayload {
-  email?: string;
-  items: OrderCreateItemPayload[];
+  customer_name?: string;
+  customer_email?: string;
+  notes?: string;
+  items: Array<
+    | OrderCreateItemPayload
+    | {
+        name: string;
+        price_raw: number;
+        qty: number;
+      }
+  >;
 }
 
 export interface OrderItem {
   id: number;
-  menu_item: number;
+  menu_item: number | null;
   menu_item_name: string;
+  item_name: string;
+  item_price: string;
   quantity: number;
+  subtotal: string;
   unit_price: string;
   line_total: string;
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'cancelled';
+export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
 
 export interface Order {
   id: number;
-  email: string;
+  order_number: string;
+  customer_name: string;
+  customer_email: string;
   status: OrderStatus;
   total_amount: string;
+  notes: string;
   stripe_payment_intent_id: string;
-  client_secret?: string;
   items: OrderItem[];
   created_at: string;
   updated_at: string;
@@ -156,13 +170,23 @@ export interface AnalyticsPayload {
   dish_volume: AnalyticsDishVolume[];
 }
 
-export interface AdminNotification {
+export interface NotificationItem {
   id: number;
   title: string;
   message: string;
+  notif_type: 'new_order' | 'status_update' | 'general';
   payload: Record<string, unknown>;
   is_read: boolean;
   created_at: string;
+  order_number?: string;
+}
+
+export interface MembersResponseItem {
+  id: number;
+  name: string;
+  role: string;
+  photo: string | null;
+  bio: string;
 }
 
 export interface FrontendFeatureItem {

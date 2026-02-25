@@ -48,8 +48,11 @@
 .heroContent {
   position: relative;
   z-index: 2;
-  max-width: 1120px;
+  max-width: 1240px;
   padding: 0 1rem 5.5rem;
+  text-align: center;
+  margin-inline: auto;
+  transform: translateY(-20%);
 }
 
 .heroEyebrow {
@@ -65,20 +68,35 @@
   margin: 0;
   color: #fdfbf7;
   font-family: var(--font-playfair), serif;
-  font-size: clamp(2rem, 5vw, 4.8rem);
-  line-height: 1.04;
-  text-wrap: balance;
-  max-width: 1100px;
+  font-size: clamp(1.14rem, 2.64vw, 2.64rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.012em;
+  max-width: min(1200px, 98vw);
+  text-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.45),
+    0 10px 34px rgba(0, 0, 0, 0.38);
+  font-feature-settings: 'liga' 1, 'kern' 1;
+  font-variant-ligatures: common-ligatures;
+}
+
+.heroTitleLinePrimary,
+.heroTitleLineSecondary {
+  display: block;
+  white-space: nowrap;
 }
 
 .heroTitle em {
-  color: #e8d5b7;
+  color: #eddcbf;
   font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }
 
 .heroSub {
   margin-top: 1.2rem;
-  max-width: 580px;
+  max-width: 780px;
+  margin-inline: auto;
   color: rgba(253, 251, 247, 0.78);
   font-size: 0.95rem;
   line-height: 1.8;
@@ -872,5 +890,12 @@
 @media (max-width: 767px) {
   .heroStats {
     display: none;
+  }
+
+  .heroTitle {
+    max-width: 100%;
+    font-size: clamp(0.96rem, 4.56vw, 1.5rem);
+    line-height: 1.14;
+    letter-spacing: -0.008em;
   }
 }

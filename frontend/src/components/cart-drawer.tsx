@@ -41,7 +41,7 @@ export function CartDrawer() {
       setSubmitting(true);
       const order = await checkout();
       setIsOpen(false);
-      toast.success(`Order #${order.id} created. Payment token ready.`);
+      toast.success(`Order #${order.order_number} placed successfully.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Unable to create order.');
     } finally {

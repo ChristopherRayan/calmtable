@@ -1,11 +1,13 @@
 """REST API views for auth, menu, reservations, reviews, orders, and analytics."""
 from datetime import datetime, timedelta
 from decimal import Decimal
+from django.db.models.functions import TruncDate
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Avg, Count, Q, Sum
 from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -21,7 +23,16 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .filters import MenuItemFilter
-from .models import AdminNotification, FrontendSettings, MenuItem, Order, OrderItem, Reservation, Review
+from .models import (
+    AdminNotification,
+    FrontendSettings,
+    MenuItem,
+    Order,
+    OrderItem,
+    Reservation,
+    Review,
+    StaffMember,
+)
 from .serializers import (
     AdminNotificationSerializer,
     FrontendSettingsSerializer,
@@ -46,41 +57,41 @@ def build_customer_display_name(user):
 
 
 def create_admin_order_notifications(order: Order):
-    """Create one notification per active staff user when a customer places an order."""
-    customer = order.user
-    if not customer:
-        return
-
-    profile = getattr(customer, "profile", None)
+    """Create notifications for staff and customer when an order is placed."""
+    customer = order.customer
+    profile = getattr(customer, "profile", None) if customer else None
     customer_phone = profile.phone if profile else ""
-    customer_name = build_customer_display_name(customer)
+    customer_name = order.customer_name or (build_customer_display_name(customer) if customer else "Guest")
+    customer_email = order.customer_email
+
     items = list(order.items.select_related("menu_item").all())
-    items_preview = ", ".join(f"{item.quantity}x {item.menu_item.name}" for item in items[:5])
+    items_preview = ", ".join(f"{item.quantity}x {item.item_name or (item.menu_item.name if item.menu_item else 'Item')}" for item in items[:5])
     if len(items) > 5:
         items_preview = f"{items_preview}, +{len(items) - 5} more"
 
     payload = {
         "order_id": order.id,
+        "order_number": order.order_number,
         "customer_name": customer_name,
-        "customer_email": order.email,
+        "customer_email": customer_email,
         "customer_phone": customer_phone,
         "total_amount": str(order.total_amount),
         "status": order.status,
         "items": [
             {
                 "menu_item_id": item.menu_item_id,
-                "menu_item_name": item.menu_item.name,
+                "menu_item_name": item.item_name or (item.menu_item.name if item.menu_item else ""),
                 "quantity": item.quantity,
-                "line_total": str(item.line_total),
+                "line_total": str(item.subtotal),
             }
             for item in items
         ],
     }
 
     message = (
-        f"Order #{order.id} by {customer_name} ({order.email})"
+        f"New order #{order.order_number} from {customer_name} ({customer_email})"
         f"{f', {customer_phone}' if customer_phone else ''}. "
-        f"Total: {order.total_amount}. Items: {items_preview or 'N/A'}."
+        f"Total: MK {order.total_amount:,.0f}. Items: {items_preview or 'N/A'}."
     )
 
     admins = User.objects.filter(is_staff=True, is_active=True).only("id")
@@ -90,10 +101,23 @@ def create_admin_order_notifications(order: Order):
             order=order,
             title="New Customer Order",
             message=message,
+            notif_type=AdminNotification.Type.NEW_ORDER,
             payload=payload,
         )
         for admin_user in admins
     ]
+    if customer and customer.is_active:
+        notifications.append(
+            AdminNotification(
+                recipient=customer,
+                order=order,
+                title="Order Received",
+                message=f"Your order #{order.order_number} has been received. We are preparing it now.",
+                notif_type=AdminNotification.Type.STATUS_UPDATE,
+                payload=payload,
+            )
+        )
+
     if notifications:
         AdminNotification.objects.bulk_create(notifications)
 
@@ -247,7 +271,12 @@ class MenuItemViewSet(viewsets.ReadOnlyModelViewSet):
         ordered_count_annotation = Coalesce(
             Sum(
                 "order_items__quantity",
-                filter=Q(order_items__order__status=Order.Status.PAID),
+                filter=Q(order_items__order__status__in=[
+                    Order.Status.CONFIRMED,
+                    Order.Status.PREPARING,
+                    Order.Status.READY,
+                    Order.Status.COMPLETED,
+                ]),
             ),
             0,
         )
@@ -387,52 +416,79 @@ class OrderViewSet(
     def get_queryset(self):
         if self.request.user.is_staff:
             return self.queryset
-        return self.queryset.filter(user=self.request.user)
+        return self.queryset.filter(customer=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = OrderCreateSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
 
-        client_secret = ""
-        if settings.STRIPE_SECRET_KEY:
-            try:
-                import stripe
-            except ImportError as exc:
-                raise ValidationError("Stripe SDK is not installed on the server.") from exc
-
-            stripe.api_key = settings.STRIPE_SECRET_KEY
-            intent = stripe.PaymentIntent.create(
-                amount=int(Decimal(order.total_amount) * Decimal("100")),
-                currency=settings.STRIPE_CURRENCY,
-                automatic_payment_methods={"enabled": True},
-                metadata={"order_id": str(order.id)},
-            )
-            order.stripe_payment_intent_id = intent.id
-            order.save(update_fields=["stripe_payment_intent_id", "updated_at"])
-            client_secret = intent.client_secret
-        elif settings.DEBUG:
-            client_secret = f"test_client_secret_order_{order.id}"
-        else:
-            raise ValidationError("Stripe is not configured for this environment.")
-
         create_admin_order_notifications(order)
         response_data = OrderSerializer(order).data
-        response_data["client_secret"] = client_secret
         return Response(response_data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"], url_path="place", permission_classes=[permissions.IsAuthenticated, IsCustomer])
+    def place(self, request):
+        """Checkout endpoint returning compact payload for menu/cart flows."""
+        serializer = OrderCreateSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        create_admin_order_notifications(order)
+        return Response(
+            {
+                "success": True,
+                "order_number": order.order_number,
+                "total": float(order.total_amount),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=False, methods=["get"], url_path="my", permission_classes=[permissions.IsAuthenticated, IsCustomer])
+    def my_orders(self, request):
+        serializer = self.get_serializer(self.get_queryset().filter(customer=request.user), many=True)
+        return Response(serializer.data)
+
+
+class OrderReceiptAPIView(APIView):
+    """Generate receipt PDF for order owners and staff."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, order_number):
+        order = get_object_or_404(Order.objects.prefetch_related("items", "items__menu_item"), order_number=order_number)
+        if not request.user.is_staff and order.customer_id != request.user.id:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        from .pdf import generate_receipt_pdf
+
+        buffer = generate_receipt_pdf(order)
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="CalmTable-Receipt-{order.order_number}.pdf"'
+        return response
 
 
 class AdminNotificationViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    """Staff-only notification feed and state updates."""
+    """User notification feed and state updates."""
 
     serializer_class = AdminNotificationSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return AdminNotification.objects.filter(recipient=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset().order_by("-created_at")[:30]
+        serializer = self.get_serializer(queryset, many=True)
+        unread = self.get_queryset().filter(is_read=False).count()
+        return Response(
+            {
+                "unread": unread,
+                "notifications": serializer.data,
+            }
+        )
 
     @action(detail=True, methods=["post"], url_path="mark-read")
     def mark_read(self, request, pk=None):
@@ -447,6 +503,36 @@ class AdminNotificationViewSet(
         updated = self.get_queryset().filter(is_read=False).update(is_read=True)
         return Response({"updated": updated})
 
+    @action(detail=False, methods=["post"], url_path="read")
+    def mark_all_read_alias(self, request):
+        """Compatibility alias for clients using /notifications/read/."""
+        return self.mark_all_read(request)
+
+    @action(detail=False, methods=["get"], url_path="unread-count")
+    def unread_count(self, request):
+        count = self.get_queryset().filter(is_read=False).count()
+        return Response({"count": count})
+
+
+class PublicMembersAPIView(APIView):
+    """Public listing of staff members displayed on the website."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        members = StaffMember.objects.filter(is_active=True, display_on_website=True)
+        payload = [
+            {
+                "id": member.id,
+                "name": member.full_name,
+                "role": member.get_role_display(),
+                "photo": member.photo.url if member.photo else None,
+                "bio": member.bio,
+            }
+            for member in members
+        ]
+        return Response({"members": payload})
+
 
 class AnalyticsAPIView(APIView):
     """Staff-only analytics payload for reservation and order insights."""
@@ -459,7 +545,7 @@ class AnalyticsAPIView(APIView):
 
         todays_reservations = Reservation.objects.filter(date=today).count()
         total_revenue = (
-            Order.objects.filter(status=Order.Status.PAID).aggregate(total=Sum("total_amount"))["total"]
+            Order.objects.exclude(status=Order.Status.CANCELLED).aggregate(total=Sum("total_amount"))["total"]
             or Decimal("0.00")
         )
 
@@ -498,5 +584,50 @@ class AnalyticsAPIView(APIView):
                 "top_dishes": dish_volume,
                 "reservation_volume": reservation_volume,
                 "dish_volume": dish_volume,
+            }
+        )
+
+
+class AnalyticsOrdersPerDayAPIView(APIView):
+    """Staff-only chart payload for orders per day."""
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        since = timezone.now() - timedelta(days=30)
+        qs = (
+            Order.objects.filter(created_at__gte=since)
+            .annotate(date=TruncDate("created_at"))
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        )
+        return Response(
+            {
+                "labels": [str(row["date"]) for row in qs],
+                "values": [row["count"] for row in qs],
+            }
+        )
+
+
+class AnalyticsRevenueAPIView(APIView):
+    """Staff-only chart payload for revenue trend."""
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        since = timezone.now() - timedelta(days=30)
+        qs = (
+            Order.objects.filter(created_at__gte=since)
+            .exclude(status=Order.Status.CANCELLED)
+            .annotate(date=TruncDate("created_at"))
+            .values("date")
+            .annotate(total=Sum("total_amount"))
+            .order_by("date")
+        )
+        return Response(
+            {
+                "labels": [str(row["date"]) for row in qs],
+                "values": [float(row["total"] or 0) for row in qs],
             }
         )

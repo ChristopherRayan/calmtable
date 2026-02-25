@@ -1,8 +1,9 @@
-"""Database models for menu, reservations, reviews, and ordering."""
+"""Database models for menu, reservations, reviews, ordering, notifications, and staff members."""
 from copy import deepcopy
 import secrets
 import string
 from decimal import Decimal
+import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -331,40 +332,74 @@ class Order(models.Model):
         """Supported lifecycle states for customer orders."""
 
         PENDING = "pending", "Pending"
-        PAID = "paid", "Paid"
+        CONFIRMED = "confirmed", "Confirmed"
+        PREPARING = "preparing", "Preparing"
+        READY = "ready", "Ready"
+        COMPLETED = "completed", "Completed"
         CANCELLED = "cancelled", "Cancelled"
 
-    user = models.ForeignKey(
+    order_number = models.CharField(max_length=20, unique=True, editable=False, blank=True, null=True)
+    customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="orders",
     )
-    email = models.EmailField()
+    customer_name = models.CharField(max_length=120, blank=True)
+    customer_email = models.EmailField(blank=True)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    stripe_payment_intent_id = models.CharField(max_length=120, blank=True)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    notes = models.TextField(blank=True)
+    stripe_payment_intent_id = models.CharField(max_length=120, blank=True)  # legacy optional payment id
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ("-created_at",)
         indexes = [
-            models.Index(fields=["user", "status", "created_at"]),
+            models.Index(fields=["customer", "status", "created_at"]),
+            models.Index(fields=["order_number"]),
         ]
 
     def __str__(self) -> str:
-        return f"Order<{self.pk}> {self.email}"
+        customer_label = self.customer_name or "Guest"
+        return f"Order {self.order_number or self.pk} — {customer_label}"
+
+    @property
+    def user(self):
+        """Backwards-compatible alias for previous field naming."""
+        return self.customer
+
+    @property
+    def email(self) -> str:
+        """Backwards-compatible alias for previous field naming."""
+        return self.customer_email
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = f"CC-{uuid.uuid4().hex[:8].upper()}"
+        if self.customer:
+            full_name = f"{self.customer.first_name} {self.customer.last_name}".strip()
+            if not self.customer_name:
+                self.customer_name = full_name or self.customer.get_username() or self.customer.email or "Guest"
+            if not self.customer_email:
+                self.customer_email = self.customer.email or ""
+        super().save(*args, **kwargs)
 
 
 class AdminNotification(models.Model):
     """Staff notification payload for operational events like new orders."""
 
+    class Type(models.TextChoices):
+        NEW_ORDER = "new_order", "New Order"
+        STATUS_UPDATE = "status_update", "Status Update"
+        GENERAL = "general", "General"
+
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="admin_notifications",
+        related_name="notifications",
     )
     order = models.ForeignKey(
         Order,
@@ -375,6 +410,7 @@ class AdminNotification(models.Model):
     )
     title = models.CharField(max_length=160)
     message = models.TextField()
+    notif_type = models.CharField(max_length=30, choices=Type.choices, default=Type.GENERAL)
     payload = models.JSONField(default=dict, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -393,22 +429,71 @@ class OrderItem(models.Model):
     """A single purchasable item attached to an order."""
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT, related_name="order_items")
+    menu_item = models.ForeignKey(
+        MenuItem,
+        on_delete=models.PROTECT,
+        related_name="order_items",
+        null=True,
+        blank=True,
+    )
+    item_name = models.CharField(max_length=200, blank=True)
+    item_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=8, decimal_places=2)
     line_total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
 
     class Meta:
         ordering = ("id",)
 
     def __str__(self) -> str:
-        return f"OrderItem<{self.order_id}:{self.menu_item_id}>"
+        return f"{self.quantity}x {self.item_name or self.menu_item_id}"
 
     def clean(self) -> None:
         if self.quantity < 1:
             raise ValidationError({"quantity": "Quantity must be at least 1."})
 
     def save(self, *args, **kwargs):
-        self.line_total = Decimal(self.quantity) * self.unit_price
+        if not self.item_name and self.menu_item_id:
+            self.item_name = self.menu_item.name
+        if self.item_price <= 0 and self.unit_price > 0:
+            self.item_price = self.unit_price
+        if self.unit_price <= 0 and self.item_price > 0:
+            self.unit_price = self.item_price
+
+        computed_total = Decimal(self.quantity) * self.unit_price
+        self.line_total = computed_total
+        self.subtotal = computed_total
         self.full_clean()
         return super().save(*args, **kwargs)
+
+
+class StaffMember(models.Model):
+    """Admin-managed staff profile cards for the public members page."""
+
+    class Role(models.TextChoices):
+        CHEF = "chef", "Chef"
+        WAITER = "waiter", "Waiter / Waitress"
+        CASHIER = "cashier", "Cashier"
+        MANAGER = "manager", "Manager"
+        CLEANER = "cleaner", "Cleaning Staff"
+        SECURITY = "security", "Security"
+        DELIVERY = "delivery", "Delivery"
+        OTHER = "other", "Other"
+
+    full_name = models.CharField(max_length=150)
+    role = models.CharField(max_length=30, choices=Role.choices)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    photo = models.ImageField(upload_to="staff/", blank=True, null=True)
+    bio = models.TextField(blank=True)
+    hire_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    display_on_website = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("role", "full_name")
+
+    def __str__(self) -> str:
+        return f"{self.full_name} ({self.get_role_display()})"

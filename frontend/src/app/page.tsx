@@ -175,9 +175,10 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <p className={styles.heroEyebrow}>{settings.home.hero_eyebrow}</p>
           <h1 className={styles.heroTitle}>
-            {settings.home.hero_title_prefix} <em>{settings.home.hero_title_emphasis}</em>
-            <br />
-            {settings.home.hero_title_suffix}
+            <span className={styles.heroTitleLinePrimary}>
+              {settings.home.hero_title_prefix} <em>{settings.home.hero_title_emphasis}</em>
+            </span>
+            <span className={styles.heroTitleLineSecondary}>{settings.home.hero_title_suffix}</span>
           </h1>
           <p className={styles.heroSub}>
             {settings.home.hero_description}

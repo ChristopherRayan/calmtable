@@ -7,6 +7,8 @@ import type { AuthResponse } from '@/lib/types';
 interface ApiErrorPayload {
   detail?: string;
   message?: string;
+  non_field_errors?: string[];
+  [key: string]: unknown;
 }
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost/api';
@@ -84,7 +86,21 @@ api.interceptors.response.use(
       }
     }
 
-    const message = error.response?.data?.detail ?? error.response?.data?.message ?? error.message;
+    const payload = error.response?.data;
+    const firstFieldError = payload
+      ? Object.values(payload).find(
+          (value) =>
+            Array.isArray(value) &&
+            value.length > 0 &&
+            typeof value[0] === 'string'
+        )
+      : null;
+    const message =
+      payload?.detail ??
+      payload?.message ??
+      payload?.non_field_errors?.[0] ??
+      (Array.isArray(firstFieldError) ? (firstFieldError[0] as string) : undefined) ??
+      error.message;
     return Promise.reject(new Error(message));
   }
 );

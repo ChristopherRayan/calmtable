@@ -119,6 +119,7 @@ CSRF_TRUSTED_ORIGINS = env.list(
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
@@ -187,14 +188,17 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ALWAYS_EAGER = env("CELERY_TASK_ALWAYS_EAGER")
 
 JAZZMIN_SETTINGS = {
-    "site_title": "The CalmTable Admin",
-    "site_header": "The CalmTable Administration",
-    "site_brand": "The CalmTable",
+    "site_title": "CalmTable Admin",
+    "site_header": "City Café",
+    "site_brand": "CalmTable",
     "site_logo": None,
-    "welcome_sign": "Welcome to The CalmTable admin dashboard",
+    "welcome_sign": "Welcome to City Café Admin",
+    "copyright": "City Café & Family Restaurant",
     "topmenu_links": [
         {"name": "Home", "url": "admin:index"},
         {"name": "View Site", "url": "/", "new_window": True},
+        {"model": "api.order"},
+        {"model": "api.adminnotification"},
     ],
     "icons": {
         "api.menuitem": "fas fa-utensils",
@@ -205,6 +209,7 @@ JAZZMIN_SETTINGS = {
         "api.userprofile": "fas fa-user-circle",
         "api.adminnotification": "fas fa-bell",
         "api.frontendsettings": "fas fa-sliders-h",
+        "api.staffmember": "fas fa-id-badge",
         "auth.user": "fas fa-users-cog",
         "auth.group": "fas fa-user-shield",
         "token_blacklist.blacklistedtoken": "fas fa-ban",
@@ -212,14 +217,37 @@ JAZZMIN_SETTINGS = {
     },
     "custom_css": "css/admin_custom.css",
     "custom_js": "js/admin_custom.js",
-    "show_ui_builder": True,
+    "show_ui_builder": False,
 }
 
 JAZZMIN_UI_TWEAKS = {
-    "theme": "darkly",
-    "dark_mode_theme": "darkly",
-    "sidebar": "sidebar-dark-primary",
+    "navbar_small_text": False,
+    "footer_small_text": True,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-warning",
     "navbar": "navbar-dark",
+    "no_navbar_border": True,
     "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
     "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-warning",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "cosmo",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
 }

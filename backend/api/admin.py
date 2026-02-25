@@ -24,6 +24,7 @@ from .models import (
     OrderItem,
     Reservation,
     Review,
+    StaffMember,
     UserProfile,
 )
 
@@ -411,44 +412,129 @@ class OrderItemInline(admin.TabularInline):
 
     model = OrderItem
     extra = 0
-    readonly_fields = ("line_total",)
+    can_delete = False
+    show_change_link = False
+    readonly_fields = (
+        "menu_item",
+        "item_name",
+        "item_price",
+        "quantity",
+        "subtotal",
+        "unit_price",
+        "line_total",
+    )
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 class OrderAdmin(BaseModelAdmin):
     """Customer order and payment status admin."""
 
-    list_display = ("id", "email", "status_badge_column", "total_amount", "created_at")
+    list_display = (
+        "order_number",
+        "customer_name",
+        "customer_email",
+        "item_count",
+        "total_display",
+        "status_badge_column",
+        "created_at",
+    )
     list_filter = ("status", "created_at")
-    search_fields = ("email", "stripe_payment_intent_id")
+    search_fields = ("order_number", "customer_name", "customer_email")
     ordering = ("-created_at", "-id")
     date_hierarchy = "created_at"
-    readonly_fields = ("created_at", "updated_at", "stripe_payment_intent_id")
+    readonly_fields = (
+        "order_number",
+        "customer",
+        "customer_reference",
+        "customer_name",
+        "customer_email",
+        "status",
+        "total_amount",
+        "notes",
+        "created_at",
+        "updated_at",
+        "download_receipt_link",
+    )
     inlines = (OrderItemInline,)
     fieldsets = (
-        ("Order", {"fields": ("user", "email", "status", "total_amount")}),
-        ("Payment", {"fields": ("stripe_payment_intent_id",), "classes": ("collapse",)}),
+        (
+            "Order",
+            {
+                "fields": (
+                    "order_number",
+                    "customer",
+                    "customer_reference",
+                    "customer_name",
+                    "customer_email",
+                    "status",
+                    "total_amount",
+                    "notes",
+                )
+            },
+        ),
         ("Audit", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+        ("Receipt", {"fields": ("download_receipt_link",)}),
     )
-    actions = BaseModelAdmin.actions + ("mark_paid", "mark_cancelled", "mark_pending")
+    actions = BaseModelAdmin.actions + ("download_receipt_action",)
 
     @admin.display(description="Status")
     def status_badge_column(self, obj):
         return status_badge(obj.status)
 
+    @admin.display(description="Items")
+    def item_count(self, obj):
+        return obj.items.count()
+
+    @admin.display(description="Total")
+    def total_display(self, obj):
+        formatted_total = f"{obj.total_amount:,.0f}"
+        return format_html("<strong>MK {}</strong>", formatted_total)
+
+    @admin.display(description="Customer ID / Name")
+    def customer_reference(self, obj):
+        if obj.customer_id:
+            full_name = (f"{obj.customer.first_name} {obj.customer.last_name}".strip() or obj.customer.get_username())
+            return f"#{obj.customer_id} - {full_name}"
+        if obj.customer_name:
+            return f"Unlinked - {obj.customer_name}"
+        if obj.customer_email:
+            return f"Unlinked - {obj.customer_email}"
+        return "-"
+
+    @admin.display(description="Receipt")
+    def download_receipt_link(self, obj):
+        return format_html(
+            '<a href="/api/orders/{}/receipt/" target="_blank" style="color:#D2B48C">'
+            '<i class="fas fa-file-pdf"></i> Download PDF</a>',
+            obj.order_number,
+        )
+
     def has_add_permission(self, request):
         return False
 
-    @admin.action(description="Mark selected orders as paid")
-    def mark_paid(self, request, queryset):
-        queryset.update(status=Order.Status.PAID)
+    def has_change_permission(self, request, obj=None):
+        return False
 
-    @admin.action(description="Mark selected orders as cancelled")
-    def mark_cancelled(self, request, queryset):
-        queryset.update(status=Order.Status.CANCELLED)
+    def has_delete_permission(self, request, obj=None):
+        return False
 
-    @admin.action(description="Mark selected orders as pending")
-    def mark_pending(self, request, queryset):
-        queryset.update(status=Order.Status.PENDING)
+    @admin.action(description="Download receipt PDF")
+    def download_receipt_action(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, "Select exactly one order to download receipt.", level="warning")
+            return None
+        order = queryset.first()
+        from .pdf import generate_receipt_pdf
+
+        buffer = generate_receipt_pdf(order)
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="CalmTable-{order.order_number}.pdf"'
+        return response
 
 
 class OrderItemAdmin(BaseModelAdmin):
@@ -456,12 +542,21 @@ class OrderItemAdmin(BaseModelAdmin):
 
     list_display = ("order", "menu_item", "quantity", "unit_price", "line_total")
     list_filter = ("order__status",)
-    search_fields = ("order__email", "menu_item__name")
+    search_fields = ("order__customer_email", "order__order_number", "menu_item__name", "item_name")
     ordering = ("-id",)
     fieldsets = (
-        ("Line Item", {"fields": ("order", "menu_item", "quantity", "unit_price", "line_total")}),
+        ("Line Item", {"fields": ("order", "menu_item", "item_name", "item_price", "quantity", "subtotal")}),
     )
-    readonly_fields = ("line_total",)
+    readonly_fields = ("order", "menu_item", "item_name", "item_price", "quantity", "subtotal", "unit_price", "line_total")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class UserProfileAdmin(BaseModelAdmin):
@@ -486,14 +581,14 @@ class UserProfileAdmin(BaseModelAdmin):
 class AdminNotificationAdmin(BaseModelAdmin):
     """Staff notification admin."""
 
-    list_display = ("id", "recipient", "title", "read_badge", "created_at")
-    list_filter = ("is_read", "created_at")
+    list_display = ("id", "recipient", "notif_type", "title", "read_badge", "created_at")
+    list_filter = ("notif_type", "is_read", "created_at")
     search_fields = ("title", "message", "recipient__username", "recipient__email")
     ordering = ("-created_at", "-id")
     date_hierarchy = "created_at"
-    readonly_fields = ("created_at",)
+    readonly_fields = ("recipient", "order", "title", "message", "notif_type", "payload", "is_read", "created_at")
     fieldsets = (
-        ("Notification", {"fields": ("recipient", "order", "title", "message", "payload", "is_read")}),
+        ("Notification", {"fields": ("recipient", "order", "title", "message", "notif_type", "payload", "is_read")}),
         ("Audit", {"fields": ("created_at",), "classes": ("collapse",)}),
     )
     actions = BaseModelAdmin.actions + ("mark_read", "mark_unread")
@@ -509,6 +604,59 @@ class AdminNotificationAdmin(BaseModelAdmin):
     @admin.action(description="Mark selected notifications as unread")
     def mark_unread(self, request, queryset):
         queryset.update(is_read=False)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class StaffMemberAdmin(BaseModelAdmin):
+    """Staff member directory admin for public team page content."""
+
+    list_display = (
+        "photo_preview",
+        "full_name",
+        "role_badge",
+        "email",
+        "phone",
+        "is_active",
+        "display_on_website",
+    )
+    list_filter = ("role", "is_active", "display_on_website")
+    search_fields = ("full_name", "email", "phone")
+    list_editable = ("is_active", "display_on_website")
+    ordering = ("role", "full_name")
+    readonly_fields = ("created_at",)
+    fieldsets = (
+        ("Personal Info", {"fields": ("full_name", "role", "photo", "bio")}),
+        ("Contact", {"fields": ("email", "phone")}),
+        ("Status", {"fields": ("hire_date", "is_active", "display_on_website", "created_at")}),
+    )
+
+    @admin.display(description="Photo")
+    def photo_preview(self, obj):
+        if obj.photo:
+            return format_html(
+                '<img src="{}" style="width:38px;height:38px;border-radius:50%;'
+                'object-fit:cover;border:2px solid #D2B48C"/>',
+                obj.photo.url,
+            )
+        initials = "".join(part[0] for part in obj.full_name.split()[:2]).upper()
+        return format_html(
+            '<div style="width:38px;height:38px;border-radius:50%;background:#5C4033;color:#fff;'
+            'display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">{}</div>',
+            initials,
+        )
+
+    @admin.display(description="Role")
+    def role_badge(self, obj):
+        return format_html(
+            '<span style="background:rgba(210,180,140,.2);color:#5C4033;padding:3px 10px;'
+            'border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase">{}</span>',
+            obj.get_role_display(),
+        )
 
 
 class FrontendSettingsAdmin(BaseModelAdmin):
@@ -546,3 +694,4 @@ custom_admin_site.register(OrderItem, OrderItemAdmin)
 custom_admin_site.register(UserProfile, UserProfileAdmin)
 custom_admin_site.register(AdminNotification, AdminNotificationAdmin)
 custom_admin_site.register(FrontendSettings, FrontendSettingsAdmin)
+custom_admin_site.register(StaffMember, StaffMemberAdmin)

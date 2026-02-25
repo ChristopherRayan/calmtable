@@ -7,6 +7,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  Receipt,
   Phone,
   ShoppingBag,
   Sun,
@@ -26,11 +27,11 @@ import { useCart } from '@/components/cart-provider';
 import { useTheme } from '@/components/theme-provider';
 import { normalizeImageSource, shouldSkipImageOptimization } from '@/lib/image';
 import {
-  fetchAdminNotifications,
-  markAdminNotificationRead,
-  markAllAdminNotificationsRead,
+  fetchNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
 } from '@/lib/services';
-import type { AdminNotification } from '@/lib/types';
+import type { NotificationItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
@@ -57,7 +58,7 @@ export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   const profileWrapRef = useRef<HTMLDivElement | null>(null);
@@ -126,28 +127,28 @@ export function Navigation() {
     return [summary, total].filter(Boolean).join(' | ');
   }
 
-  const loadAdminNotifications = useCallback(async () => {
-    if (!isAuthenticated || !user?.is_staff) {
+  const loadNotifications = useCallback(async () => {
+    if (!isAuthenticated) {
       setNotifications([]);
       return;
     }
     try {
       setLoadingNotifications(true);
-      const data = await fetchAdminNotifications();
+      const data = await fetchNotifications();
       setNotifications(data);
     } catch (_error) {
       setNotifications([]);
     } finally {
       setLoadingNotifications(false);
     }
-  }, [isAuthenticated, user?.is_staff]);
+  }, [isAuthenticated]);
 
   async function markNotificationsRead() {
-    if (!isAuthenticated || !user?.is_staff) {
+    if (!isAuthenticated) {
       return;
     }
     try {
-      await markAllAdminNotificationsRead();
+      await markAllNotificationsRead();
       setNotifications((current) => current.map((notification) => ({ ...notification, is_read: true })));
     } catch (_error) {
       // No toast: this runs on panel open and should stay silent on transient network issues.
@@ -155,11 +156,11 @@ export function Navigation() {
   }
 
   async function clearNotifications() {
-    if (!isAuthenticated || !user?.is_staff) {
+    if (!isAuthenticated) {
       return;
     }
     try {
-      await markAllAdminNotificationsRead();
+      await markAllNotificationsRead();
       setNotifications((current) => current.map((notification) => ({ ...notification, is_read: true })));
     } catch (_error) {
       toast.error('Unable to clear notifications right now.');
@@ -194,18 +195,18 @@ export function Navigation() {
   }
 
   useEffect(() => {
-    if (!isAuthenticated || !user?.is_staff) {
+    if (!isAuthenticated) {
       setNotifications([]);
       return;
     }
 
-    void loadAdminNotifications();
+    void loadNotifications();
     const timer = window.setInterval(() => {
-      void loadAdminNotifications();
+      void loadNotifications();
     }, 20000);
 
     return () => window.clearInterval(timer);
-  }, [isAuthenticated, user?.is_staff, loadAdminNotifications]);
+  }, [isAuthenticated, loadNotifications]);
 
   return (
     <header
@@ -248,7 +249,7 @@ export function Navigation() {
         </ul>
 
         <div className="hidden items-center gap-1 md:flex">
-          {isAuthenticated && user?.is_staff && (
+          {isAuthenticated && (
             <div ref={bellWrapRef} className="relative">
               <button
                 type="button"
@@ -264,7 +265,11 @@ export function Navigation() {
                 aria-label="Notifications"
               >
                 <Bell size={18} />
-                {unreadCount > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#E07065]" />}
+                {unreadCount > 0 && (
+                  <span className="absolute right-1 top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#E07065] px-1 text-[9px] font-semibold text-white">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </button>
               <div
                 className={cn(
@@ -297,7 +302,7 @@ export function Navigation() {
                           !notification.is_read && 'bg-woodAccent/10'
                         )}
                         onClick={() => {
-                          void markAdminNotificationRead(notification.id).then((updated) => {
+                          void markNotificationRead(notification.id).then((updated) => {
                             setNotifications((current) =>
                               current.map((item) => (item.id === updated.id ? updated : item))
                             );
@@ -417,6 +422,16 @@ export function Navigation() {
                     >
                       <BookOpen size={15} />
                       My Reservations
+                    </Link>
+                  )}
+                  {!user?.is_staff && (
+                    <Link
+                      href="/my-orders"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 hover:bg-woodAccent/10 hover:text-ink"
+                    >
+                      <Receipt size={15} />
+                      My Orders
                     </Link>
                   )}
                   {user?.is_staff && (
