@@ -25,6 +25,8 @@ export const defaultFrontendSettings: FrontendContentPayload = {
     hero_title_suffix: 'and unforgettable flavors.',
     hero_description:
       'Join us for handcrafted dishes, warm hospitality, and premium ambiance near Simso Filling Station, Luwinga, Mzuzu.',
+    hero_bg_image: '/images/hero-placeholder.svg',
+    about_image: '/images/hero-placeholder.png',
     story_quote: 'Good food is the foundation of genuine happiness - we serve both.',
     story_description:
       'The CalmTable started as a family kitchen with one promise: feed every guest with dignity and care. Today we serve Malawian favorites, fresh fish, and heritage recipes in a refined, welcoming setting.',
@@ -48,6 +50,7 @@ export const defaultFrontendSettings: FrontendContentPayload = {
     reservation_banner_emphasis: 'An Unforgettable Evening',
     reservation_banner_description:
       'Reserve your table in advance and let us prepare your premium dining experience.',
+    reservation_bg_image: '/images/hero-placeholder.svg',
     testimonials: [
       {
         quote: 'The Chambo was absolutely divine. I keep coming back because the quality never drops.',
@@ -63,11 +66,11 @@ export const defaultFrontendSettings: FrontendContentPayload = {
       },
     ],
     gallery_images: [
-      'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=900&q=80',
-      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
-      'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=600&q=80',
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80',
-      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80',
+      '/images/gallery-1.png',
+      '/images/gallery-2.svg',
+      '/images/gallery-3.svg',
+      '/images/gallery-4.svg',
+      '/images/gallery-5.svg',
     ],
   },
   about: {

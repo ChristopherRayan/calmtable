@@ -2,6 +2,7 @@
 
 from django.contrib.auth import authenticate, get_user_model
 from django.db import IntegrityError, transaction
+from django.core.files.storage import default_storage
 from rest_framework import serializers
 
 from .models import (
@@ -12,6 +13,7 @@ from .models import (
     OrderItem,
     Reservation,
     Review,
+    Table,
     UserProfile,
 )
 
@@ -50,6 +52,9 @@ class UserPublicSerializer(serializers.ModelSerializer):
         profile = getattr(obj, "profile", None)
         if not profile or not profile.profile_image:
             return ""
+        image_name = str(profile.profile_image.name or "")
+        if not image_name or not default_storage.exists(image_name):
+            return ""
         return profile.profile_image.url
 
 
@@ -57,17 +62,33 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     """Serializer for customer registration requests."""
 
     password = serializers.CharField(write_only=True, min_length=8)
+    first_name = serializers.CharField(required=True, min_length=1)
 
     class Meta:
         model = User
-        fields = ("username", "email", "password", "first_name", "last_name")
+        fields = ("email", "password", "first_name", "last_name")
 
     def create(self, validated_data):
+        first_name = validated_data.get("first_name", "").strip()
+        base_username = first_name.lower().replace(" ", "") or "user"
+        
+        # Generate a unique username
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            import random
+            suffix = random.randint(10, 99)
+            username = f"{base_username}{suffix}"
+            counter += 1
+            if counter > 10: # Fallback to more entropy
+                username = f"{base_username}{random.randint(1000, 9999)}"
+                break
+
         return User.objects.create_user(
-            username=validated_data["username"],
+            username=username,
             email=validated_data["email"],
             password=validated_data["password"],
-            first_name=validated_data.get("first_name", ""),
+            first_name=first_name,
             last_name=validated_data.get("last_name", ""),
         )
 
@@ -135,7 +156,39 @@ class FrontendSettingsSerializer(serializers.ModelSerializer):
         fields = ("content", "updated_at")
 
     def get_content(self, obj):
-        return obj.resolved_content()
+        content = obj.resolved_content()
+        home = content.get("home") or {}
+        gallery_images = home.get("gallery_images") or []
+        # ensure hero and about images have sensible fallbacks so frontend
+        # never sees an empty string or missing key
+        if not home.get("hero_bg_image"):
+            home["hero_bg_image"] = "/images/hero-placeholder.svg"
+        if not home.get("reservation_bg_image"):
+            home["reservation_bg_image"] = "/images/hero-placeholder.svg"
+        if not home.get("about_image"):
+            home["about_image"] = "/images/hero-placeholder.png"
+
+        # Normalize legacy/external gallery URLs to bundled local assets so
+        # frontend images always render even when external CDNs fail.
+        fallback_gallery = [
+            "/images/gallery-1.png",
+            "/images/gallery-2.svg",
+            "/images/gallery-3.svg",
+            "/images/gallery-4.svg",
+            "/images/gallery-5.svg",
+        ]
+        normalized_gallery = []
+        for index in range(5):
+            source = ""
+            if index < len(gallery_images):
+                source = str(gallery_images[index] or "").strip()
+            if source.startswith("https://images.unsplash.com"):
+                source = ""
+            normalized_gallery.append(source or fallback_gallery[index])
+
+        home["gallery_images"] = normalized_gallery
+        content["home"] = home
+        return content
 
 
 class UserProfileUpdateSerializer(serializers.Serializer):
@@ -211,24 +264,41 @@ class MenuItemSerializer(serializers.ModelSerializer):
         )
 
 
+class TableSerializer(serializers.ModelSerializer):
+    """Serializer for table listing for reservation UI."""
+
+    seats = serializers.IntegerField(source="capacity", read_only=True)
+
+    class Meta:
+        model = Table
+        fields = ("id", "table_number", "seats", "description")
+
+
 class ReservationSerializer(serializers.ModelSerializer):
     """Serializer for reservation create and retrieve responses."""
+
+    table = TableSerializer(read_only=True)
+    table_id = serializers.IntegerField(write_only=True, source="table")
 
     class Meta:
         model = Reservation
         fields = (
+            "id",
             "name",
             "email",
             "phone",
             "date",
             "time_slot",
             "party_size",
+            "party_duration_hours",
+            "table",
+            "table_id",
             "special_requests",
             "status",
             "confirmation_code",
             "created_at",
         )
-        read_only_fields = ("status", "confirmation_code", "created_at")
+        read_only_fields = ("id", "status", "confirmation_code", "created_at", "table")
 
     def create(self, validated_data):
         request = self.context.get("request")

@@ -83,6 +83,7 @@ export function Navigation() {
     [user?.profile_image_url]
   );
   const profileInitials = initialsFromUserName(profileName || 'CT');
+  const profileAvatarSrc = profileImageSrc || '/images/avatar-placeholder.svg';
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
@@ -128,7 +129,7 @@ export function Navigation() {
   }
 
   const loadNotifications = useCallback(async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user?.is_staff) {
       setNotifications([]);
       return;
     }
@@ -141,7 +142,7 @@ export function Navigation() {
     } finally {
       setLoadingNotifications(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.is_staff]);
 
   async function markNotificationsRead() {
     if (!isAuthenticated) {
@@ -217,7 +218,7 @@ export function Navigation() {
           : 'border-b border-woodAccent/20 bg-gradient-to-b from-cream/95 to-cream/85 backdrop-blur-md'
       )}
     >
-      <nav className="page-shell flex h-20 items-center justify-between" aria-label="Main">
+      <nav className="page-shell flex h-14 items-center justify-between" aria-label="Main">
         <Link
           href="/"
           className={cn(
@@ -380,20 +381,16 @@ export function Navigation() {
                 }}
                 aria-label="Account menu"
               >
-                {profileImageSrc ? (
-                  <span className="relative block h-full w-full overflow-hidden rounded-full">
-                    <Image
-                      src={profileImageSrc}
-                      alt="Profile avatar"
-                      fill
-                      className="object-cover"
-                      sizes="40px"
-                      unoptimized={shouldSkipImageOptimization(profileImageSrc)}
-                    />
-                  </span>
-                ) : (
-                  profileInitials
-                )}
+                <span className="relative block h-full w-full overflow-hidden rounded-full">
+                  <Image
+                    src={profileAvatarSrc}
+                    alt={profileImageSrc ? "Profile avatar" : `${profileInitials} avatar`}
+                    fill
+                    className="object-cover"
+                    sizes="40px"
+                    unoptimized={shouldSkipImageOptimization(profileAvatarSrc)}
+                  />
+                </span>
               </button>
               <div
                 className={cn(

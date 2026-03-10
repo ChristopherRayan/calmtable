@@ -44,10 +44,3 @@ frontend/.turbo/
 .DS_Store
 Thumbs.db
 task.md.resolved
-
-# Docker
-*.pid
-*.log
-docker-data/
-postgres-data/
-redis-data/

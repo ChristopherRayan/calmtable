@@ -4,8 +4,10 @@
 @tailwind utilities;
 
 :root {
-  --table-brown-rgb: 110 84 63;
-  --table-brown-light-rgb: 141 109 83;
+  --font-inter: 'Montserrat', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-playfair: 'Times New Roman', Georgia, serif;
+  --table-brown-rgb: 153 81 23;
+  --table-brown-light-rgb: 179 106 46;
   --wood-accent-rgb: 210 180 140;
   --cream-rgb: 26 17 9;
   --warm-gray-rgb: 34 22 14;
@@ -14,8 +16,8 @@
 }
 
 [data-theme='light'] {
-  --table-brown-rgb: 92 64 51;
-  --table-brown-light-rgb: 109 76 65;
+  --table-brown-rgb: 153 81 23;
+  --table-brown-light-rgb: 179 106 46;
   --wood-accent-rgb: 210 180 140;
   --cream-rgb: 253 251 247;
   --warm-gray-rgb: 245 240 234;

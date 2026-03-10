@@ -36,6 +36,7 @@ export default function ProfilePage() {
     }
     return normalizeImageSource(user?.profile_image_url ?? '');
   }, [clearAvatar, selectedImage, user?.profile_image_url]);
+  const profilePreviewSrc = currentImageUrl || '/images/avatar-placeholder.svg';
 
   const {
     register,
@@ -114,20 +115,14 @@ export default function ProfilePage() {
           <form className="space-y-5" onSubmit={onSubmit}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="relative h-24 w-24 overflow-hidden rounded-full border border-woodAccent/40 bg-cream">
-                {currentImageUrl ? (
-                  <Image
-                    src={currentImageUrl}
-                    alt="Profile avatar preview"
-                    fill
-                    className="object-cover"
-                    sizes="96px"
-                    unoptimized={shouldSkipImageOptimization(currentImageUrl)}
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.14em] text-muted">
-                    No image
-                  </div>
-                )}
+                <Image
+                  src={profilePreviewSrc}
+                  alt="Profile avatar preview"
+                  fill
+                  className="object-cover"
+                  sizes="96px"
+                  unoptimized={shouldSkipImageOptimization(profilePreviewSrc)}
+                />
               </div>
               <div className="space-y-2">
                 <label

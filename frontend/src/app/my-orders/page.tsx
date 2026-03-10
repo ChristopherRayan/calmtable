@@ -95,47 +95,66 @@ export default function MyOrdersPage() {
       )}
 
       {!pageLoading && orders.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="mt-6 space-y-4">
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="mt-8 space-y-6">
           {orders.map((order) => (
-            <Card key={order.order_number} elevated className="space-y-4 border border-woodAccent/30 bg-warmGray/95">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="font-heading text-2xl text-tableBrown">#{order.order_number}</h2>
-                  <p className="text-xs uppercase tracking-[0.08em] text-muted">
-                    {format(parseISO(order.created_at), 'dd MMM yyyy, HH:mm')}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-woodAccent/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-tableBrown">
-                    {statusLabel(order.status)}
-                  </span>
-                  <span className="font-heading text-xl text-woodAccent">{formatKwacha(order.total_amount)}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {order.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-woodAccent/15 pb-2 text-sm last:border-b-0"
-                  >
-                    <span className="text-ink">{item.item_name || item.menu_item_name}</span>
-                    <span className="text-muted">x{item.quantity}</span>
-                    <span className="font-medium text-tableBrown">{formatKwacha(item.subtotal || item.line_total)}</span>
+            <Card key={order.order_number} elevated className="group relative overflow-hidden border border-[#8c5c29]/20 bg-warmGray/10 backdrop-blur-sm p-0 shadow-xl transition-all hover:border-[#8c5c29]/40 hover:shadow-2xl dark:bg-white/5">
+              {/* Receipt Header Decor */}
+              <div className="h-1.5 w-full bg-[#8c5c29]" />
+              
+              <div className="p-6">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8c5c29]">Official Receipt</span>
+                      <span className="h-px w-8 bg-[#8c5c29]/30" />
+                    </div>
+                    <h2 className="font-heading text-3xl font-bold text-[#8c5c29]">#{order.order_number}</h2>
+                    <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.1em] text-ink/40">
+                      Placed on {format(parseISO(order.created_at), 'dd MMM yyyy • HH:mm')}
+                    </p>
                   </div>
-                ))}
-              </div>
+                  
+                  <div className="text-right">
+                    <div className={`mb-2 inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
+                      order.status === 'completed' 
+                        ? 'bg-green-500/10 text-green-500' 
+                        : 'bg-amber-500/10 text-amber-500'
+                    }`}>
+                      {statusLabel(order.status)}
+                    </div>
+                    <div className="font-heading text-2xl font-bold text-ink/80">{formatKwacha(order.total_amount)}</div>
+                  </div>
+                </div>
 
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  onClick={() => void onDownloadReceipt(order)}
-                  disabled={downloading === order.order_number}
-                  aria-label={`Download receipt for order ${order.order_number}`}
-                >
-                  <Download size={14} />
-                  {downloading === order.order_number ? 'Preparing PDF...' : 'Download Receipt'}
-                </Button>
+                <div className="space-y-4 border-y border-dashed border-[#8c5c29]/20 py-6">
+                  {order.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-4 text-sm"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-bold text-ink/80">{item.item_name || item.menu_item_name}</span>
+                        <span className="text-[11px] text-ink/50">Quantity: {item.quantity}</span>
+                      </div>
+                      <span className="font-heading text-base font-bold text-[#8c5c29]">{formatKwacha(item.subtotal || item.line_total)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                  <p className="max-w-[180px] text-[10px] uppercase tracking-[0.05em] text-ink/30">
+                    Thank you for dining with us. This is a computer generated receipt.
+                  </p>
+                  <Button
+                    type="button"
+                    className="rounded-lg bg-[#8c5c29] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition-all hover:bg-[#734a21] hover:shadow-amber-900/20 active:scale-95"
+                    onClick={() => void onDownloadReceipt(order)}
+                    disabled={downloading === order.order_number}
+                  >
+                    <Download size={14} className="mr-2" />
+                    {downloading === order.order_number ? 'Generating...' : 'Download PDF'}
+                  </Button>
+                </div>
               </div>
             </Card>
           ))}

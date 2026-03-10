@@ -2,11 +2,12 @@
 import api from '@/lib/api';
 import type {
   AnalyticsPayload,
+  AvailableTablesResponse,
+  AvailableSlotsResponse,
   MembersResponseItem,
   NotificationItem,
   AuthResponse,
   AuthUser,
-  AvailableSlotsResponse,
   FrontendContentPayload,
   FrontendSettingsResponse,
   LoginPayload,
@@ -135,6 +136,29 @@ export async function fetchAvailableSlots(date: string): Promise<AvailableSlotsR
   }
 
   const response = await api.get<AvailableSlotsResponse>(`/available-slots/?date=${date}`);
+  return writeCache(cacheKey, response.data, SLOT_CACHE_TTL_MS);
+}
+
+export async function fetchAvailableTables(
+  date: string,
+  time: string,
+  partySize: number,
+  durationHours: number = 2
+): Promise<AvailableTablesResponse> {
+  const cacheKey = `tables:${date}:${time}:${partySize}:${durationHours}`;
+  const cached = readCache<AvailableTablesResponse>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const params = new URLSearchParams({
+    date,
+    time,
+    party_size: String(partySize),
+    duration: String(durationHours),
+  });
+
+  const response = await api.get<AvailableTablesResponse>(`/available-tables/?${params.toString()}`);
   return writeCache(cacheKey, response.data, SLOT_CACHE_TTL_MS);
 }
 

@@ -11,13 +11,17 @@ env = environ.Env(
     USE_SQLITE=(bool, True),
     MAX_RESERVATIONS_PER_SLOT=(int, 3),
     CELERY_TASK_ALWAYS_EAGER=(bool, False),
+    CORS_ALLOW_ALL_ORIGINS=(bool, False),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY", default="unsafe-dev-key")
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=["localhost", "127.0.0.1"],
+)
 
 INSTALLED_APPS = [
     "jazzmin",
@@ -81,7 +85,7 @@ else:
             "NAME": env("DATABASE_NAME", default="calm_table"),
             "USER": env("DATABASE_USER", default="calm_table"),
             "PASSWORD": env("DATABASE_PASSWORD", default="calm_table"),
-            "HOST": env("DATABASE_HOST", default="db"),
+            "HOST": env("DATABASE_HOST", default="localhost"),
             "PORT": env("DATABASE_PORT", default="5432"),
         }
     }
@@ -92,6 +96,8 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+APPEND_SLASH = False
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = env("TIME_ZONE", default="UTC")
@@ -110,6 +116,7 @@ CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",
     default=["http://localhost:3000", "http://localhost"],
 )
+CORS_ALLOW_ALL_ORIGINS = env("CORS_ALLOW_ALL_ORIGINS", default=DEBUG)
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
@@ -119,7 +126,6 @@ CSRF_TRUSTED_ORIGINS = env.list(
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.SessionAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
@@ -189,11 +195,11 @@ CELERY_TASK_ALWAYS_EAGER = env("CELERY_TASK_ALWAYS_EAGER")
 
 JAZZMIN_SETTINGS = {
     "site_title": "CalmTable Admin",
-    "site_header": "City Café",
-    "site_brand": "CalmTable",
+    "site_header": "Calm Table",
+    "site_brand": "Calm Table",
     "site_logo": None,
-    "welcome_sign": "Welcome to City Café Admin",
-    "copyright": "City Café & Family Restaurant",
+    "welcome_sign": "Welcome to Calm Table Admin",
+    "copyright": "Calm Table & Family Restaurant",
     "topmenu_links": [
         {"name": "Home", "url": "admin:index"},
         {"name": "View Site", "url": "/", "new_window": True},

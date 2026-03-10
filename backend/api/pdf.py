@@ -8,8 +8,8 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-BROWN_LIGHT_BG = colors.HexColor("#F5EFE6")
-BROWN_ACCENT = colors.HexColor("#5C4033")
+BROWN_LIGHT_BG = colors.HexColor("#FDFBF7")
+BROWN_ACCENT = colors.HexColor("#8c5c29")
 WOOD_GOLD = colors.HexColor("#D2B48C")
 TEXT_DARK = colors.HexColor("#2C1A0E")
 TEXT_DIM = colors.HexColor("#9E8C7A")
@@ -53,7 +53,7 @@ def generate_receipt_pdf(order) -> BytesIO:
         fontSize=26,
         textColor=BROWN_ACCENT,
         alignment=TA_CENTER,
-        spaceAfter=2,
+        spaceAfter=12,
     )
     sub = style(
         "sub",
@@ -82,8 +82,10 @@ def generate_receipt_pdf(order) -> BytesIO:
 
     story = [
         Paragraph("The CalmTable", h1),
-        Paragraph("Dine with Dignity · Luwinga, Mzuzu, Malawi", sub),
-        HRFlowable(width="100%", thickness=1.5, color=WOOD_GOLD, spaceAfter=12),
+        Spacer(1, 4 * mm),
+        Paragraph("Dine with Dignity • Luwinga, Mzuzu, Malawi", sub),
+        HRFlowable(width="100%", thickness=2, color=BROWN_ACCENT, spaceAfter=8),
+        HRFlowable(width="100%", thickness=0.5, color=WOOD_GOLD, spaceAfter=12),
     ]
 
     meta_rows = [
@@ -139,10 +141,10 @@ def generate_receipt_pdf(order) -> BytesIO:
         item_name = item.item_name or (item.menu_item.name if item.menu_item else "Menu Item")
         rows.append(
             [
-                Paragraph(item_name, value),
+                Paragraph(f"<b>{item_name}</b>", style("it", fontSize=10, textColor=TEXT_DARK)),
                 Paragraph(str(item.quantity), style("qty", fontSize=10, textColor=TEXT_DARK, alignment=TA_CENTER)),
                 Paragraph(f"MK {item.item_price:,.0f}", style("price", fontSize=10, textColor=TEXT_DARK, alignment=TA_RIGHT)),
-                Paragraph(f"MK {item.subtotal:,.0f}", style("subtotal", fontSize=10, textColor=TEXT_DARK, alignment=TA_RIGHT)),
+                Paragraph(f"MK {item.subtotal:,.0f}", style("subtotal", fontSize=10, textColor=BROWN_ACCENT, alignment=TA_RIGHT, fontName="Helvetica-Bold")),
             ]
         )
 
@@ -167,10 +169,11 @@ def generate_receipt_pdf(order) -> BytesIO:
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (0, 0), BROWN_LIGHT_BG),
-                ("TOPPADDING", (0, 0), (0, 0), 10),
-                ("BOTTOMPADDING", (0, 0), (0, 0), 10),
-                ("RIGHTPADDING", (0, 0), (0, 0), 10),
-                ("LINEABOVE", (0, 0), (0, 0), 1.5, WOOD_GOLD),
+                ("TOPPADDING", (0, 0), (0, 0), 12),
+                ("BOTTOMPADDING", (0, 0), (0, 0), 12),
+                ("RIGHTPADDING", (0, 0), (0, 0), 15),
+                ("LINEABOVE", (0, 0), (0, 0), 2, BROWN_ACCENT),
+                ("LINEBELOW", (0, 0), (0, 0), 0.5, WOOD_GOLD),
             ]
         )
     )

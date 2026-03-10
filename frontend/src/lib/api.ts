@@ -11,7 +11,22 @@ interface ApiErrorPayload {
   [key: string]: unknown;
 }
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost/api';
+function resolveApiBaseUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api';
+
+  if (raw.startsWith('/')) {
+    return raw;
+  }
+
+  try {
+    new URL(raw);
+    return raw;
+  } catch (_error) {
+    return '/api';
+  }
+}
+
+const apiBaseUrl = resolveApiBaseUrl();
 
 const api = axios.create({
   baseURL: apiBaseUrl,

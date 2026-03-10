@@ -4,10 +4,10 @@ from decimal import Decimal
 from django.db.models.functions import TruncDate
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model, login
 from django.db.models import Avg, Count, Q, Sum
 from django.db.models.functions import Coalesce
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -15,11 +15,14 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .filters import MenuItemFilter
@@ -199,6 +202,41 @@ class LogoutAPIView(APIView):
         return Response(status=status.HTTP_205_RESET_CONTENT)
 
 
+class AdminSSOView(APIView):
+    """Single Sign-On view for staff accessing Django admin from frontend.
+    
+    Accepts a JWT token and creates a Django session for admin access.
+    Redirects to Django admin on success.
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        token_str = request.query_params.get("token")
+        if not token_str:
+            return HttpResponseRedirect("/admin/login/")
+
+        try:
+            # Validate JWT token
+            jwt_auth = JWTAuthentication()
+            validated_token = jwt_auth.get_validated_token(token_str)
+            user = jwt_auth.get_user(validated_token)
+        except AuthenticationFailed:
+            return HttpResponseRedirect("/admin/login/")
+        except Exception:
+            return HttpResponseRedirect("/admin/login/")
+
+        # Check if user is staff
+        if not user or not user.is_staff:
+            return HttpResponseRedirect("/admin/login/")
+
+        # Create a Django session for this user
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+
+        # Redirect to Django admin
+        return HttpResponseRedirect("/admin/")
+
+
 class MeAPIView(APIView):
     """Return profile details for the current authenticated user."""
 
@@ -236,6 +274,7 @@ class FrontendSettingsAPIView(APIView):
     """Public endpoint for frontend-editable CMS settings."""
 
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     @method_decorator(cache_page(60))
     def get(self, request):
@@ -248,6 +287,7 @@ class FrontendSettingsAPIView(APIView):
 class MenuItemViewSet(viewsets.ReadOnlyModelViewSet):
     """Read-only endpoints for menu listing and details."""
 
+    authentication_classes = []
     serializer_class = MenuItemSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = MenuItemFilter
@@ -340,6 +380,8 @@ class ReviewViewSet(
 class AvailableSlotsAPIView(APIView):
     """Return available reservation slots for a given date."""
 
+    authentication_classes = []
+
     def get(self, request):
         date_value = request.query_params.get("date")
         if not date_value:
@@ -393,6 +435,74 @@ class AvailableSlotsAPIView(APIView):
                 "available_slots": available_slots,
                 "full_slots": full_slots,
                 "max_reservations_per_slot": settings.MAX_RESERVATIONS_PER_SLOT,
+            }
+        )
+
+
+@method_decorator(cache_page(20), name="get")
+class AvailableTablesAPIView(APIView):
+    """Return available tables for a given date, time, party size, and duration."""
+
+    authentication_classes = []
+
+    def get(self, request):
+        from datetime import datetime as dt
+        from .models import Table
+
+        date_value = request.query_params.get("date")
+        time_value = request.query_params.get("time")
+        party_size = request.query_params.get("party_size")
+        duration_hours = request.query_params.get("duration", 2)
+
+        if not all([date_value, time_value, party_size]):
+            return Response(
+                {"detail": "Query parameters 'date', 'time', and 'party_size' are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        target_date = parse_date(date_value)
+        if not target_date:
+            return Response(
+                {"detail": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            time_slot = dt.strptime(time_value, "%H:%M").time()
+        except ValueError:
+            return Response(
+                {"detail": "Invalid time format. Use HH:MM."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            party_size = int(party_size)
+            duration_hours = int(duration_hours)
+        except (ValueError, TypeError):
+            return Response(
+                {"detail": "party_size and duration must be integers."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if party_size < 1 or party_size > 20:
+            return Response(
+                {"detail": "Party size must be between 1 and 20."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get all active tables that can fit the party
+        tables = Table.objects.filter(is_active=True, capacity__gte=party_size).order_by("table_number")
+
+        available_tables = []
+        for table in tables:
+            if table.is_available_for_slot(target_date, time_slot, duration_hours):
+                from .serializers import TableSerializer
+                available_tables.append(TableSerializer(table).data)
+
+        return Response(
+            {
+                "date": target_date.isoformat(),
+                "time": time_value,
+                "party_size": party_size,
+                "duration_hours": duration_hours,
+                "available_tables": available_tables,
+                "total_available": len(available_tables),
             }
         )
 
@@ -473,6 +583,7 @@ class AdminNotificationViewSet(
 ):
     """User notification feed and state updates."""
 
+    authentication_classes = (SessionAuthentication, JWTAuthentication)
     serializer_class = AdminNotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -518,6 +629,7 @@ class PublicMembersAPIView(APIView):
     """Public listing of staff members displayed on the website."""
 
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def get(self, request):
         members = StaffMember.objects.filter(is_active=True, display_on_website=True)
@@ -537,6 +649,7 @@ class PublicMembersAPIView(APIView):
 class AnalyticsAPIView(APIView):
     """Staff-only analytics payload for reservation and order insights."""
 
+    authentication_classes = (SessionAuthentication, JWTAuthentication)
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
@@ -591,6 +704,7 @@ class AnalyticsAPIView(APIView):
 class AnalyticsOrdersPerDayAPIView(APIView):
     """Staff-only chart payload for orders per day."""
 
+    authentication_classes = (SessionAuthentication, JWTAuthentication)
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
@@ -613,6 +727,7 @@ class AnalyticsOrdersPerDayAPIView(APIView):
 class AnalyticsRevenueAPIView(APIView):
     """Staff-only chart payload for revenue trend."""
 
+    authentication_classes = (SessionAuthentication, JWTAuthentication)
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):

@@ -4,7 +4,6 @@
 import { addDays, format, parseISO, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -14,8 +13,8 @@ import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { SectionHeading } from '@/components/section-heading';
-import { createReservation, fetchAvailableSlots } from '@/lib/services';
-import type { Reservation } from '@/lib/types';
+import { createReservation, fetchAvailableSlots, fetchAvailableTables } from '@/lib/services';
+import type { Reservation, Table, AvailableTablesResponse } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const guestDetailsSchema = z.object({
@@ -36,23 +35,22 @@ function clampPartySize(value: number) {
 
 export default function BookPage() {
   const { user, loading, isAuthenticated } = useAuth();
-  const searchParams = useSearchParams();
 
   const today = useMemo(() => new Date(), []);
-  const queryDate = searchParams.get('date');
-  const queryPartySize = Number(searchParams.get('party_size') ?? 2);
-  const initialDate =
-    queryDate && !Number.isNaN(Date.parse(queryDate)) ? format(parseISO(queryDate), 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd');
+  const initialDate = format(today, 'yyyy-MM-dd');
 
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [selectedDate, setSelectedDate] = useState(initialDate);
-  const [partySize, setPartySize] = useState(clampPartySize(queryPartySize));
+  const [partySize, setPartySize] = useState(2);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [fullSlots, setFullSlots] = useState<string[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [slotLoading, setSlotLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [createdReservation, setCreatedReservation] = useState<Reservation | null>(null);
+  const [availableTables, setAvailableTables] = useState<Table[]>([]);
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
+  const [durationHours, setDurationHours] = useState(2);
 
   const {
     register,
@@ -72,6 +70,16 @@ export default function BookPage() {
   const minDate = format(today, 'yyyy-MM-dd');
   const maxDate = format(addDays(today, 60), 'yyyy-MM-dd');
   const parsedSelectedDate = useMemo(() => parseISO(selectedDate), [selectedDate]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryDate = searchParams.get('date');
+    const queryPartySize = Number(searchParams.get('party_size') ?? 2);
+    if (queryDate && !Number.isNaN(Date.parse(queryDate))) {
+      setSelectedDate(format(parseISO(queryDate), 'yyyy-MM-dd'));
+    }
+    setPartySize(clampPartySize(queryPartySize));
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -107,6 +115,30 @@ export default function BookPage() {
     void loadSlots();
   }, [selectedDate, selectedTimeSlot]);
 
+  useEffect(() => {
+    async function loadTables() {
+      if (!selectedTimeSlot) {
+        setAvailableTables([]);
+        setSelectedTable(null);
+        return;
+      }
+
+      try {
+        const response = await fetchAvailableTables(selectedDate, selectedTimeSlot, partySize, durationHours);
+        setAvailableTables(response.available_tables);
+        if (selectedTable && !response.available_tables.find(t => t.id === selectedTable.id)) {
+          setSelectedTable(null);
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Failed to load available tables.');
+        setAvailableTables([]);
+        setSelectedTable(null);
+      }
+    }
+
+    void loadTables();
+  }, [selectedDate, selectedTimeSlot, partySize, durationHours, selectedTable]);
+
   function resetModalForm() {
     setCreatedReservation(null);
     setSelectedTimeSlot('');
@@ -130,6 +162,11 @@ export default function BookPage() {
       return;
     }
 
+    if (!selectedTable) {
+      toast.error('Select an available table.');
+      return;
+    }
+
     const validated = guestDetailsSchema.safeParse(values);
     if (!validated.success) {
       toast.error(validated.error.issues[0]?.message ?? 'Please review your details.');
@@ -143,6 +180,8 @@ export default function BookPage() {
         date: selectedDate,
         time_slot: selectedTimeSlot,
         party_size: partySize,
+        party_duration_hours: durationHours,
+        table_id: selectedTable.id,
       });
       setCreatedReservation(reservation);
       toast.success('Reservation created successfully.');
@@ -329,8 +368,59 @@ export default function BookPage() {
                       )}
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2 sm:col-span-2">
+                    <div className="grid gap-4 sm:grid-cols-2">                      <div className="space-y-2">
+                        <label htmlFor="duration" className="text-sm font-medium text-tableBrown">
+                          Duration (Hours)
+                        </label>
+                        <select
+                          id="duration"
+                          value={durationHours}
+                          onChange={(event) => setDurationHours(Number(event.target.value))}
+                          className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                        >
+                          <option value={1}>1 hour</option>
+                          <option value={2}>2 hours</option>
+                          <option value={3}>3 hours</option>
+                          <option value={4}>4 hours</option>
+                          <option value={5}>5 hours</option>
+                          <option value={6}>6 hours</option>
+                          <option value={7}>7 hours</option>
+                          <option value={8}>8 hours</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {selectedTimeSlot && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-tableBrown">Select Table</p>
+                        {availableTables.length === 0 ? (
+                          <p className="text-sm text-tableBrown/70">No tables available for this time slot.</p>
+                        ) : (
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            {availableTables.map((table) => (
+                              <button
+                                key={table.id}
+                                type="button"
+                                onClick={() => setSelectedTable(table)}
+                                className={cn(
+                                  'rounded-xl border p-3 text-left transition-colors',
+                                  selectedTable?.id === table.id
+                                    ? 'border-tableBrown bg-tableBrown/10'
+                                    : 'border-woodAccent bg-white hover:bg-warmGray'
+                                )}
+                              >
+                                <div className="font-medium text-tableBrown">Table {table.table_number}</div>
+                                <div className="text-xs text-tableBrown/70">
+                                  Seats {table.seats} • {table.description}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">                      <div className="space-y-2 sm:col-span-2">
                         <label htmlFor="name" className="text-sm font-medium text-tableBrown">
                           Full Name
                         </label>

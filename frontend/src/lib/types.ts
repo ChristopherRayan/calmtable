@@ -21,12 +21,16 @@ export interface MenuItem {
 export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled';
 
 export interface Reservation {
+  id?: number;
   name: string;
   email: string;
   phone: string;
   date: string;
   time_slot: string;
   party_size: number;
+  party_duration_hours?: number;
+  table?: Table;
+  table_id?: number;
   special_requests: string;
   status: ReservationStatus;
   confirmation_code: string;
@@ -40,7 +44,25 @@ export interface ReservationCreatePayload {
   date: string;
   time_slot: string;
   party_size: number;
+  party_duration_hours?: number;
+  table_id?: number;
   special_requests: string;
+}
+
+export interface Table {
+  id: number;
+  table_number: string;
+  seats: number;
+  description: string;
+}
+
+export interface AvailableTablesResponse {
+  date: string;
+  time: string;
+  party_size: number;
+  duration_hours: number;
+  available_tables: Table[];
+  total_available: number;
 }
 
 export interface AvailableSlotsResponse {
@@ -69,7 +91,6 @@ export interface AuthResponse {
 }
 
 export interface RegisterPayload {
-  username: string;
   email: string;
   password: string;
   first_name?: string;
@@ -226,6 +247,8 @@ export interface FrontendHomeContent {
   hero_title_emphasis: string;
   hero_title_suffix: string;
   hero_description: string;
+  hero_bg_image: string;
+  about_image: string;
   story_quote: string;
   story_description: string;
   about_features: FrontendFeatureItem[];
@@ -234,6 +257,7 @@ export interface FrontendHomeContent {
   reservation_banner_title: string;
   reservation_banner_emphasis: string;
   reservation_banner_description: string;
+  reservation_bg_image: string;
   testimonials: FrontendTestimonial[];
   gallery_images: string[];
 }

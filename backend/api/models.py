@@ -37,8 +37,11 @@ def default_frontend_content() -> dict:
             "hero_title_emphasis": "calm atmosphere",
             "hero_title_suffix": "and unforgettable flavors.",
             "hero_description": "Join us for handcrafted dishes, warm hospitality, and premium ambiance near Simso Filling Station, Luwinga, Mzuzu.",
+            "hero_bg_image": "/images/hero-placeholder.png",
+            "about_image": "/images/about-image.png",
             "story_quote": "Good food is the foundation of genuine happiness - we serve both.",
             "story_description": "The CalmTable started as a family kitchen with one promise: feed every guest with dignity and care. Today we serve Malawian favorites, fresh fish, and heritage recipes in a refined, welcoming setting.",
+            "reservation_bg_image": "/images/reservation-bg.png",
             "about_features": [
                 {"title": "Fresh Daily", "description": "Cooked every morning"},
                 {"title": "Family Owned", "description": "Since 2012"},
@@ -64,11 +67,11 @@ def default_frontend_content() -> dict:
                 {"quote": "Best Masamba Otendera in Mzuzu. Authentic taste and consistently professional service.", "author": "Takondwa Mwale"},
             ],
             "gallery_images": [
-                "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=900&q=80",
-                "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-                "https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=600&q=80",
-                "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80",
-                "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80",
+                "/images/gallery-1.png",
+                "/images/gallery-2.png",
+                "/images/gallery-3.png",
+                "/images/gallery-1.png",
+                "/images/gallery-2.png",
             ],
         },
         "about": {
@@ -171,11 +174,11 @@ class FrontendSettings(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Frontend Settings"
-        verbose_name_plural = "Frontend Settings"
+        verbose_name = "Homepage Settings"
+        verbose_name_plural = "Homepage Settings"
 
     def __str__(self) -> str:
-        return "Frontend Settings"
+        return "Homepage Settings"
 
     @classmethod
     def get_solo(cls):
@@ -189,6 +192,54 @@ class FrontendSettings(models.Model):
     def resolved_content(self) -> dict:
         """Return content merged with defaults to keep older payloads compatible."""
         return deep_merge_dict(default_frontend_content(), self.content or {})
+
+
+class Table(models.Model):
+    """A physical dining table that can be reserved."""
+
+    table_number = models.CharField(max_length=10, unique=True, db_index=True)
+    capacity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(20)])
+    description = models.CharField(max_length=100, blank=True, help_text="e.g., 'Window Seat', 'Quiet Corner', 'VIP'")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["table_number"]
+
+    def __str__(self) -> str:
+        return f"Table {self.table_number} (Seats {self.capacity})"
+
+    def is_available_for_slot(self, date, time_slot, duration_hours):
+        """
+        Check if table is available for a given date, start time, and duration.
+        Returns True if no conflicts exist; False if overlapping reservation found.
+        """
+        from datetime import datetime, timedelta
+        
+        if not self.is_active:
+            return False
+
+        # Convert time_slot to datetime for calculation
+        start_dt = datetime.combine(date, time_slot)
+        end_dt = start_dt + timedelta(hours=duration_hours)
+
+        # Query for conflicting reservations
+        active_statuses = [Reservation.Status.PENDING, Reservation.Status.CONFIRMED]
+        conflicting = Reservation.objects.filter(
+            table=self,
+            date=date,
+            status__in=active_statuses,
+        )
+
+        for res in conflicting:
+            res_start_dt = datetime.combine(res.date, res.time_slot)
+            res_end_dt = res_start_dt + timedelta(hours=res.party_duration_hours)
+
+            # Check for time overlap
+            if start_dt < res_end_dt and end_dt > res_start_dt:
+                return False
+
+        return True
 
 
 class Reservation(models.Model):
@@ -214,6 +265,14 @@ class Reservation(models.Model):
     date = models.DateField()
     time_slot = models.TimeField()
     party_size = models.PositiveSmallIntegerField()
+    table = models.ForeignKey(
+        Table,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reservations",
+    )
+    party_duration_hours = models.PositiveSmallIntegerField(default=2, validators=[MinValueValidator(1), MaxValueValidator(8)])
     special_requests = models.TextField(blank=True)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
     confirmation_code = models.CharField(max_length=8, unique=True, db_index=True, editable=False)
@@ -266,12 +325,27 @@ class Reservation(models.Model):
         if self.party_size < 1 or self.party_size > 20:
             raise ValidationError({"party_size": "Party size must be between 1 and 20."})
 
+        # Validate table assignment
+        if not self.table:
+            raise ValidationError({"table": "A table must be selected for this reservation."})
+
+        if self.party_size > self.table.capacity:
+            raise ValidationError(
+                {"party_size": f"Party size ({self.party_size}) exceeds table capacity ({self.table.capacity})."}
+            )
+
         if schedule_changed:
             if self.date < now_local.date():
                 raise ValidationError({"date": "Reservations cannot be made for past dates."})
 
             if self.date == now_local.date() and self.time_slot <= now_local.time().replace(second=0, microsecond=0):
                 raise ValidationError({"time_slot": "Reservations cannot be made for past time slots."})
+
+            # Check if selected table is available for the requested time slot and duration
+            if self.table and not self.table.is_available_for_slot(self.date, self.time_slot, self.party_duration_hours):
+                raise ValidationError(
+                    {"table": f"Table {self.table.table_number} is not available for the selected date and time. Please choose another table or time slot."}
+                )
 
         active_statuses = [self.Status.PENDING, self.Status.CONFIRMED]
         if self.status in active_statuses:
@@ -394,6 +468,7 @@ class AdminNotification(models.Model):
     class Type(models.TextChoices):
         NEW_ORDER = "new_order", "New Order"
         STATUS_UPDATE = "status_update", "Status Update"
+        AUDIT = "audit", "Audit"
         GENERAL = "general", "General"
 
     recipient = models.ForeignKey(
@@ -410,6 +485,7 @@ class AdminNotification(models.Model):
     )
     title = models.CharField(max_length=160)
     message = models.TextField()
+    link_url = models.URLField(max_length=400, blank=True, null=True)
     notif_type = models.CharField(max_length=30, choices=Type.choices, default=Type.GENERAL)
     payload = models.JSONField(default=dict, blank=True)
     is_read = models.BooleanField(default=False)

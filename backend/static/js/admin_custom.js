@@ -1,5 +1,16 @@
 /* Custom admin behaviors: Chart.js init, live clock, and periodic refresh. */
 (function () {
+  function isProtectedAdminPage() {
+    var body = document.body;
+    if (!body) {
+      return false;
+    }
+    if (body.classList.contains("login")) {
+      return false;
+    }
+    return Boolean(document.querySelector(".main-sidebar"));
+  }
+
   function parseAnalyticsData() {
     var node = document.getElementById("ct-admin-analytics-data");
     if (!node) {
@@ -110,6 +121,10 @@
   }
 
   function pollNotificationBadge() {
+    if (!isProtectedAdminPage()) {
+      return;
+    }
+
     if (document.getElementById("admin-notif-link")) {
       return;
     }

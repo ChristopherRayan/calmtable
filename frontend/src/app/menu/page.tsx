@@ -33,19 +33,19 @@ const categoryTabs: Array<{ label: string; value: DisplayCategory }> = [
 const fallbackImages: Array<{ keywords: string[]; url: string }> = [
   {
     keywords: ['chambo', 'butterfish', 'fish'],
-    url: 'https://images.unsplash.com/photo-1519984388953-d2406bc725e1?w=1400&q=80',
+    url: '/images/dish-fish.svg',
   },
   {
     keywords: ['goat', 'beef', 'chicken', 'stew', 'braii'],
-    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400&q=80',
+    url: '/images/dish-meat.svg',
   },
   {
     keywords: ['chapati', 'samoosa', 'doughnut', 'wrap'],
-    url: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=1400&q=80',
+    url: '/images/dish-snack.svg',
   },
   {
     keywords: ['tea', 'coffee', 'milk', 'water', 'drink', 'ice-cream'],
-    url: 'https://images.unsplash.com/photo-1543253687-c931c8e01820?w=1400&q=80',
+    url: '/images/dish-drink.svg',
   },
 ];
 
