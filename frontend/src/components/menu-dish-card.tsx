@@ -46,8 +46,8 @@ export function MenuDishCard({ item, onAddToCart }: MenuDishCardProps) {
       </div>
       <div className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-heading text-xl text-tableBrown">{item.name}</h3>
-          <span className="text-sm font-semibold text-tableBrown">{formatKwacha(item.price)}</span>
+          <h3 className="font-heading font-bold text-xl text-ink dark:text-white mb-2 leading-tight">{item.name}</h3>
+          <span className="text-amber-600 dark:text-amber-400 font-heading font-bold text-lg">{formatKwacha(item.price)}</span>
         </div>
         {typeof item.average_rating === 'number' ? (
           <StarRatingDisplay rating={item.average_rating} />

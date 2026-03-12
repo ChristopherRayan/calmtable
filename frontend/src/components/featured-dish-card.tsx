@@ -28,8 +28,8 @@ export function FeaturedDishCard({ item }: FeaturedDishCardProps) {
             unoptimized={shouldSkipImageOptimization(imageSrc)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-warmGray via-cream to-tableBrown/30">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-tableBrown/80">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-warmGray via-cream to-tableBrown/30 dark:from-warmGray/20 dark:via-[#1a0f08] dark:to-white/10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-tableBrown/80 dark:text-white/70">
               Add photo in admin
             </p>
           </div>
@@ -37,11 +37,11 @@ export function FeaturedDishCard({ item }: FeaturedDishCardProps) {
       </div>
       <div className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-heading text-xl text-tableBrown">{item.name}</h3>
+          <h3 className="font-heading text-xl text-tableBrown dark:text-white">{item.name}</h3>
           <Badge tone="accent">{formatKwacha(item.price)}</Badge>
         </div>
         {item.ordered_count > 0 && (
-          <p className="text-xs font-semibold uppercase tracking-wide text-tableBrown/70">
+          <p className="text-xs font-semibold uppercase tracking-wide text-tableBrown/70 dark:text-white/70">
             Ordered {item.ordered_count} times
           </p>
         )}

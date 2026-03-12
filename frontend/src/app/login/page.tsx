@@ -173,19 +173,19 @@ export default function LoginPage() {
         unoptimized={shouldSkipImageOptimization(bgImage)}
         priority
       />
-      <div className="absolute inset-0 bg-[#1a0f08]/60 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-[#1a0f08]/60 dark:bg-black/60 backdrop-blur-md" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0604] via-transparent to-transparent opacity-80" />
 
       {/* ─── Content ──────────────────────────────────────────────── */}
       <div className="page-shell relative z-10 w-full max-w-2xl">
         <div className="text-center mb-6">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-500">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-500 dark:text-amber-400">
             Account Access
           </p>
-          <h1 className="mt-2 font-heading text-3xl font-bold text-white sm:text-5xl">
+          <h1 className="mt-2 font-heading text-3xl font-bold text-white dark:text-gray-100 sm:text-5xl">
             Welcome <em>Back</em>
           </h1>
-          <p className="mt-2 text-sm leading-relaxed text-white/70 max-w-lg mx-auto">
+          <p className="mt-2 text-sm leading-relaxed text-white/70 dark:text-gray-300 max-w-lg mx-auto">
             Sign in or create an account to book your table, easily order your favorite dishes, and manage your CalmTable experience.
           </p>
         </div>
@@ -193,30 +193,28 @@ export default function LoginPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="overflow-hidden rounded-3xl border border-white/10 bg-[#2a1810]/40 p-5 backdrop-blur-xl shadow-2xl ring-1 ring-white/5 sm:p-6"
+          className="overflow-hidden rounded-3xl border border-white/10 dark:border-gray-700 bg-[#2a1810]/40 dark:bg-gray-900/80 p-5 backdrop-blur-xl shadow-2xl ring-1 ring-white/5 dark:ring-gray-700 sm:p-6"
         >
           {/* Tab Switcher */}
-          <div className="mb-6 flex rounded-full border border-white/10 bg-[#1a0f08]/60 p-1">
+          <div className="mb-6 flex rounded-full border border-white/10 dark:border-gray-700 bg-[#1a0f08]/60 dark:bg-gray-800/80 p-1">
             <button
               type="button"
               onClick={() => setActiveTab('login')}
-              className={`flex-1 rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] transition-all ${
-                activeTab === 'login' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/40' : 'text-white/50 hover:text-white/80'
-              }`}
+              className={`flex-1 rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] transition-all ${activeTab === 'login' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/40 dark:shadow-amber-900/60' : 'text-white/50 dark:text-gray-400 hover:text-white/80 dark:hover:text-gray-200'
+                }`}
             >
               Sign In
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('register')}
-              className={`flex-1 rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] transition-all ${
-                activeTab === 'register' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/40' : 'text-white/50 hover:text-white/80'
-              }`}
+              className={`flex-1 rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] transition-all ${activeTab === 'register' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/40 dark:shadow-amber-900/60' : 'text-white/50 dark:text-gray-400 hover:text-white/80 dark:hover:text-gray-200'
+                }`}
             >
               Register
             </button>
           </div>
-          
+
           {/* Tab Content */}
           <div className="relative">
             <AnimatePresence mode="wait">
@@ -232,28 +230,28 @@ export default function LoginPage() {
                 >
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <label htmlFor="login-email" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70">
+                      <label htmlFor="login-email" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70 dark:text-gray-300">
                         Email or Username
                       </label>
                       <input
                         id="login-email"
                         type="text"
                         {...registerLoginField('email')}
-                        className="h-12 w-full rounded-xl border border-white/10 bg-[#1a0f08]/50 px-4 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-amber-500/50 focus:bg-[#1a0f08]/80"
+                        className="h-12 w-full rounded-xl border border-white/10 dark:border-gray-600 bg-[#1a0f08]/50 dark:bg-gray-800/50 px-4 text-sm text-white dark:text-gray-100 placeholder-white/30 dark:placeholder-gray-500 outline-none transition-colors focus:border-amber-500/50 dark:focus:border-amber-400/50 focus:bg-[#1a0f08]/80 dark:focus:bg-gray-800/80"
                         placeholder="name@example.com"
                       />
                       {errors.email && <p className="text-xs text-[#E07065]">{errors.email.message}</p>}
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="login-password" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70">
+                      <label htmlFor="login-password" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70 dark:text-gray-300">
                         Password
                       </label>
                       <input
                         id="login-password"
                         type="password"
                         {...registerLoginField('password')}
-                        className="h-12 w-full rounded-xl border border-white/10 bg-[#1a0f08]/50 px-4 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-amber-500/50 focus:bg-[#1a0f08]/80"
+                        className="h-12 w-full rounded-xl border border-white/10 dark:border-gray-600 bg-[#1a0f08]/50 dark:bg-gray-800/50 px-4 text-sm text-white dark:text-gray-100 placeholder-white/30 dark:placeholder-gray-500 outline-none transition-colors focus:border-amber-500/50 dark:focus:border-amber-400/50 focus:bg-[#1a0f08]/80 dark:focus:bg-gray-800/80"
                         placeholder="••••••••"
                       />
                       {errors.password && <p className="text-xs text-[#E07065]">{errors.password.message}</p>}
@@ -262,7 +260,7 @@ export default function LoginPage() {
 
                   <Button
                     type="submit"
-                    className="mt-4 w-full rounded-xl bg-amber-600 py-3.5 text-xs font-bold uppercase tracking-[0.15em] text-white transition-colors hover:bg-amber-500"
+                    className="mt-4 w-full rounded-xl bg-amber-600 py-3.5 text-xs font-bold uppercase tracking-[0.15em] text-white dark:text-gray-100 transition-colors hover:bg-amber-500 dark:hover:bg-amber-600"
                     disabled={loginSubmitting}
                   >
                     {loginSubmitting ? 'Signing In...' : 'Sign In'}
@@ -280,26 +278,26 @@ export default function LoginPage() {
                 >
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <label htmlFor="register-first-name" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70">
+                      <label htmlFor="register-first-name" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70 dark:text-gray-300">
                         First Name
                       </label>
                       <input
                         id="register-first-name"
                         type="text"
                         {...registerFormField('first_name')}
-                        className="h-12 w-full rounded-xl border border-white/10 bg-[#1a0f08]/50 px-4 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-amber-500/50 focus:bg-[#1a0f08]/80"
+                        className="h-12 w-full rounded-xl border border-white/10 dark:border-gray-600 bg-[#1a0f08]/50 dark:bg-gray-800/50 px-4 text-sm text-white dark:text-gray-100 placeholder-white/30 dark:placeholder-gray-500 outline-none transition-colors focus:border-amber-500/50 dark:focus:border-amber-400/50 focus:bg-[#1a0f08]/80 dark:focus:bg-gray-800/80"
                         placeholder="John"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="register-last-name" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70">
+                      <label htmlFor="register-last-name" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70 dark:text-gray-300">
                         Last Name
                       </label>
                       <input
                         id="register-last-name"
                         type="text"
                         {...registerFormField('last_name')}
-                        className="h-12 w-full rounded-xl border border-white/10 bg-[#1a0f08]/50 px-4 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-amber-500/50 focus:bg-[#1a0f08]/80"
+                        className="h-12 w-full rounded-xl border border-white/10 dark:border-gray-600 bg-[#1a0f08]/50 dark:bg-gray-800/50 px-4 text-sm text-white dark:text-gray-100 placeholder-white/30 dark:placeholder-gray-500 outline-none transition-colors focus:border-amber-500/50 dark:focus:border-amber-400/50 focus:bg-[#1a0f08]/80 dark:focus:bg-gray-800/80"
                         placeholder="Doe"
                       />
                     </div>
@@ -307,42 +305,42 @@ export default function LoginPage() {
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <label htmlFor="register-email" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70">
+                      <label htmlFor="register-email" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70 dark:text-gray-300">
                         Email
                       </label>
                       <input
                         id="register-email"
                         type="email"
                         {...registerFormField('email')}
-                        className="h-12 w-full rounded-xl border border-white/10 bg-[#1a0f08]/50 px-4 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-amber-500/50 focus:bg-[#1a0f08]/80"
+                        className="h-12 w-full rounded-xl border border-white/10 dark:border-gray-600 bg-[#1a0f08]/50 dark:bg-gray-800/50 px-4 text-sm text-white dark:text-gray-100 placeholder-white/30 dark:placeholder-gray-500 outline-none transition-colors focus:border-amber-500/50 dark:focus:border-amber-400/50 focus:bg-[#1a0f08]/80 dark:focus:bg-gray-800/80"
                         placeholder="name@example.com"
                       />
                       {registerErrors.email && <p className="text-xs text-[#E07065]">{registerErrors.email.message}</p>}
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="register-password" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70">
+                      <label htmlFor="register-password" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70 dark:text-gray-300">
                         Password
                       </label>
                       <input
                         id="register-password"
                         type="password"
                         {...registerFormField('password')}
-                        className="h-12 w-full rounded-xl border border-white/10 bg-[#1a0f08]/50 px-4 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-amber-500/50 focus:bg-[#1a0f08]/80"
+                        className="h-12 w-full rounded-xl border border-white/10 dark:border-gray-600 bg-[#1a0f08]/50 dark:bg-gray-800/50 px-4 text-sm text-white dark:text-gray-100 placeholder-white/30 dark:placeholder-gray-500 outline-none transition-colors focus:border-amber-500/50 dark:focus:border-amber-400/50 focus:bg-[#1a0f08]/80 dark:focus:bg-gray-800/80"
                         placeholder="••••••••"
                       />
                       {registerErrors.password && <p className="text-xs text-[#E07065]">{registerErrors.password.message}</p>}
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="register-confirm-password" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70">
+                      <label htmlFor="register-confirm-password" className="text-xs font-bold uppercase tracking-[0.1em] text-white/70 dark:text-gray-300">
                         Confirm Password
                       </label>
                       <input
                         id="register-confirm-password"
                         type="password"
                         {...registerFormField('confirm_password')}
-                        className="h-12 w-full rounded-xl border border-white/10 bg-[#1a0f08]/50 px-4 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-amber-500/50 focus:bg-[#1a0f08]/80"
+                        className="h-12 w-full rounded-xl border border-white/10 dark:border-gray-600 bg-[#1a0f08]/50 dark:bg-gray-800/50 px-4 text-sm text-white dark:text-gray-100 placeholder-white/30 dark:placeholder-gray-500 outline-none transition-colors focus:border-amber-500/50 dark:focus:border-amber-400/50 focus:bg-[#1a0f08]/80 dark:focus:bg-gray-800/80"
                         placeholder="••••••••"
                       />
                       {registerErrors.confirm_password && <p className="text-xs text-[#E07065]">{registerErrors.confirm_password.message}</p>}
@@ -351,7 +349,7 @@ export default function LoginPage() {
 
                   <Button
                     type="submit"
-                    className="mt-4 w-full rounded-xl bg-amber-600 py-3.5 text-xs font-bold uppercase tracking-[0.15em] text-white transition-colors hover:bg-amber-500"
+                    className="mt-4 w-full rounded-xl bg-amber-600 py-3.5 text-xs font-bold uppercase tracking-[0.15em] text-white dark:text-gray-100 transition-colors hover:bg-amber-500 dark:hover:bg-amber-600"
                     disabled={registerSubmitting}
                   >
                     {registerSubmitting ? 'Creating Account...' : 'Create Customer Account'}

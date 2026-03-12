@@ -12,7 +12,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   }
 
   if (status === 'cancelled') {
-    return <Badge className="bg-[#E07065] text-white">Cancelled</Badge>;
+    return <Badge className="bg-[#E07065] text-white dark:bg-[#E07065]/80 dark:text-white">Cancelled</Badge>;
   }
 
   return <Badge tone="neutral">Pending</Badge>;

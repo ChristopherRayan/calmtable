@@ -115,12 +115,12 @@ export default function ManagerMembersPage() {
     }
   }
 
-  if (loading) return <div className="text-white/40">Loading team...</div>;
+  if (loading) return <div className="text-gray-400 dark:text-white/40">Loading team...</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-heading text-2xl text-white">Public Team Management</h2>
+        <h2 className="font-heading text-2xl text-gray-900 dark:text-white">Public Team Management</h2>
         <Button onClick={() => { setEditingMember(null); setIsModalOpen(true); }}>
           Add Member
         </Button>
@@ -128,9 +128,9 @@ export default function ManagerMembersPage() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {members.map((member) => (
-          <Card key={member.id} className={`border-white/10 ${!member.is_active ? 'opacity-50' : ''}`}>
+          <Card key={member.id} className={`border-gray-200 dark:border-white/10 ${!member.is_active ? 'opacity-50' : ''}`}>
             <div className="flex items-start gap-4">
-              <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-amber-500/20 bg-white/5">
+              <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-amber-500/20 bg-gray-100 dark:bg-white/5">
                 {member.photo ? (
                   <img src={member.photo} alt={member.full_name} className="h-full w-full object-cover" />
                 ) : (
@@ -140,16 +140,16 @@ export default function ManagerMembersPage() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="truncate font-bold text-white">{member.full_name}</h3>
-                <p className="text-xs text-amber-500">{member.role_display}</p>
-                <p className="mt-1 truncate text-[10px] text-white/40">{member.email || 'No email'}</p>
+                <h3 className="truncate font-bold text-gray-900 dark:text-white">{member.full_name}</h3>
+                <p className="text-xs text-amber-600 dark:text-amber-500">{member.role_display}</p>
+                <p className="mt-1 truncate text-[10px] text-gray-500 dark:text-white/40">{member.email || 'No email'}</p>
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2 pt-4 border-t border-white/5">
+            <div className="mt-4 flex flex-wrap gap-2 pt-4 border-t border-gray-100 dark:border-white/5">
               <button
                 onClick={() => { setEditingMember(member); setIsModalOpen(true); }}
-                className="text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white"
+                className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-white/60 hover:text-gray-700 dark:hover:text-white"
               >
                 Edit
               </button>
@@ -174,66 +174,66 @@ export default function ManagerMembersPage() {
         {isModalOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 p-4 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md rounded-3xl border border-white/10 bg-[#140d09] p-6 shadow-2xl"
+              className="w-full max-w-md rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#140d09] p-6 shadow-2xl"
             >
-              <h3 className="mb-6 font-heading text-xl text-white">
+              <h3 className="mb-6 font-heading text-xl text-gray-900 dark:text-white">
                 {editingMember ? 'Edit Team Member' : 'Add Team Member'}
               </h3>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-white/40">Full Name</label>
+                  <label className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/40">Full Name</label>
                   <input
                     name="full_name"
                     defaultValue={editingMember?.full_name}
                     required
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-amber-500/50 outline-none"
+                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-amber-500/50 outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-white/40">Role</label>
+                  <label className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/40">Role</label>
                   <select
                     name="role"
                     defaultValue={editingMember?.role}
                     required
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-amber-500/50 outline-none"
+                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-amber-500/50 outline-none"
                   >
-                    {roles.map(r => <option key={r.value} value={r.value} className="bg-[#140d09]">{r.label}</option>)}
+                    {roles.map(r => <option key={r.value} value={r.value} className="bg-white dark:bg-[#140d09]">{r.label}</option>)}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-white/40">Email</label>
+                    <label className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/40">Email</label>
                     <input
                       name="email"
                       type="email"
                       defaultValue={editingMember?.email}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-amber-500/50 outline-none"
+                      className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-amber-500/50 outline-none"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-white/40">Phone</label>
+                    <label className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/40">Phone</label>
                     <input
                       name="phone"
                       defaultValue={editingMember?.phone}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-amber-500/50 outline-none"
+                      className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-amber-500/50 outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-white/40">Bio</label>
+                  <label className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/40">Bio</label>
                   <textarea
                     name="bio"
                     defaultValue={editingMember?.bio}
                     rows={3}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-amber-500/50 outline-none"
+                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-amber-500/50 outline-none"
                   />
                 </div>
 

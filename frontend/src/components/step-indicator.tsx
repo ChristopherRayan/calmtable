@@ -19,14 +19,14 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
             <span
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold',
-                isDone && 'border-tableBrown bg-tableBrown text-white',
-                isActive && 'border-tableBrown text-tableBrown',
-                !isActive && !isDone && 'border-woodAccent text-tableBrown/70'
+                isDone && 'border-tableBrown bg-tableBrown text-white dark:border-white/30 dark:bg-white/10 dark:text-white',
+                isActive && 'border-tableBrown text-tableBrown dark:border-white/30 dark:text-white',
+                !isActive && !isDone && 'border-woodAccent text-tableBrown/70 dark:border-white/20 dark:text-white/60'
               )}
             >
               {stepNumber}
             </span>
-            <span className={cn('text-sm', isActive ? 'text-tableBrown font-semibold' : 'text-tableBrown/80')}>
+            <span className={cn('text-sm', isActive ? 'text-tableBrown font-semibold dark:text-white' : 'text-tableBrown/80 dark:text-white/60')}>
               {step}
             </span>
           </li>

@@ -108,13 +108,13 @@ export default function ProfilePage() {
         description="Update your name, phone number, and profile image. Email is locked for account security."
       />
 
-      <Card elevated className="mt-6 space-y-6">
+      <Card elevated className="bg-white dark:bg-[#1a0f08] rounded-xl border border-stone-200 dark:border-white/10 mt-6 space-y-6">
         {loading ? (
           <p className="text-sm text-muted">Loading profile...</p>
         ) : (
           <form className="space-y-5" onSubmit={onSubmit}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="relative h-24 w-24 overflow-hidden rounded-full border border-woodAccent/40 bg-cream">
+              <div className="relative h-24 w-24 overflow-hidden rounded-full border border-woodAccent/40 bg-cream dark:bg-white/5">
                 <Image
                   src={profilePreviewSrc}
                   alt="Profile avatar preview"
@@ -127,7 +127,7 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <label
                   htmlFor="profile-image"
-                  className="inline-flex cursor-pointer rounded-full border border-woodAccent/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-tableBrown hover:bg-woodAccent/10"
+                  className="inline-flex cursor-pointer rounded-full border border-woodAccent/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-tableBrown dark:text-white/90 hover:bg-woodAccent/10 dark:hover:bg-white/10"
                 >
                   Upload Profile Image
                 </label>
@@ -159,24 +159,24 @@ export default function ProfilePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <label htmlFor="first_name" className="text-sm font-medium text-tableBrown">
+                <label htmlFor="first_name" className="text-sm font-medium text-tableBrown dark:text-white/90">
                   First Name
                 </label>
                 <input
                   id="first_name"
                   {...register('first_name')}
-                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream dark:bg-white/5 dark:border-white/10 px-3 text-sm text-ink dark:text-white"
                 />
                 {errors.first_name && <p className="text-xs text-[#E07065]">{errors.first_name.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="last_name" className="text-sm font-medium text-tableBrown">
+                <label htmlFor="last_name" className="text-sm font-medium text-tableBrown dark:text-white/90">
                   Last Name
                 </label>
                 <input
                   id="last_name"
                   {...register('last_name')}
-                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream dark:bg-white/5 dark:border-white/10 px-3 text-sm text-ink dark:text-white"
                 />
                 {errors.last_name && <p className="text-xs text-[#E07065]">{errors.last_name.message}</p>}
               </div>
@@ -184,25 +184,25 @@ export default function ProfilePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <label htmlFor="phone" className="text-sm font-medium text-tableBrown">
+                <label htmlFor="phone" className="text-sm font-medium text-tableBrown dark:text-white/90">
                   Phone Number
                 </label>
                 <input
                   id="phone"
                   {...register('phone')}
-                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream px-3 text-sm text-ink"
+                  className="h-11 w-full rounded-xl border border-woodAccent bg-cream dark:bg-white/5 dark:border-white/10 px-3 text-sm text-ink dark:text-white"
                 />
                 {errors.phone && <p className="text-xs text-[#E07065]">{errors.phone.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="email_locked" className="text-sm font-medium text-tableBrown">
+                <label htmlFor="email_locked" className="text-sm font-medium text-tableBrown dark:text-white/90">
                   Email (Locked)
                 </label>
                 <input
                   id="email_locked"
                   value={user?.email ?? ''}
                   readOnly
-                  className="h-11 w-full cursor-not-allowed rounded-xl border border-woodAccent/40 bg-warmGray px-3 text-sm text-muted"
+                  className="h-11 w-full cursor-not-allowed rounded-xl border border-woodAccent/40 bg-warmGray dark:bg-white/5 px-3 text-sm text-muted dark:text-white/60"
                 />
               </div>
             </div>

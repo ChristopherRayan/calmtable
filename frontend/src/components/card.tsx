@@ -11,8 +11,8 @@ export function Card({ className, elevated = false, ...props }: CardProps) {
   return (
     <article
       className={cn(
-        'rounded-2xl border border-woodAccent/60 bg-warmGray p-5',
-        elevated && 'shadow-soft',
+        'rounded-2xl border border-stone-200 dark:border-woodAccent/60 bg-white dark:bg-warmGray p-5',
+        elevated && 'shadow-soft dark:shadow-soft',
         className
       )}
       {...props}

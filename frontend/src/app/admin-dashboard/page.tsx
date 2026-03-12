@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="page-shell py-10">
-        <p className="text-sm text-ink/70">Loading...</p>
+        <p className="text-sm text-ink/70 dark:text-white/70">Loading...</p>
       </div>
     );
   }
@@ -39,14 +39,14 @@ export default function AdminDashboardPage() {
   if (!user?.is_staff) {
     return (
       <div className="page-shell py-10">
-        <p className="text-sm text-ink/70">You do not have permission to access this page.</p>
+        <p className="text-sm text-ink/70 dark:text-white/70">You do not have permission to access this page.</p>
       </div>
     );
   }
 
   return (
     <div className="page-shell py-10">
-      <p className="text-sm text-ink/70">Redirecting to admin panel...</p>
+      <p className="text-sm text-ink/70 dark:text-white/70">Redirecting to admin panel...</p>
     </div>
   );
 }

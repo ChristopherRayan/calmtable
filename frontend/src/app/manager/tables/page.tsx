@@ -68,12 +68,12 @@ export default function ManagerTablesPage() {
         }
     }
 
-    if (loading) return <div className="text-white/40">Loading tables...</div>;
+    if (loading) return <div className="text-gray-400 dark:text-white/40">Loading tables...</div>;
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="font-heading text-2xl text-white">Table Management</h2>
+                <h2 className="font-heading text-2xl text-gray-900 dark:text-white">Table Management</h2>
                 <Button onClick={() => { setEditingTable(null); setIsModalOpen(true); }}>
                     Add Table
                 </Button>
@@ -81,13 +81,13 @@ export default function ManagerTablesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {tables.map((table) => (
-                    <Card key={table.id} className={`border-white/10 ${!table.is_active ? 'opacity-50' : ''}`}>
+                    <Card key={table.id} className={`border-gray-200 dark:border-white/10 ${!table.is_active ? 'opacity-50' : ''}`}>
                         <div className="flex items-start justify-between">
                             <div>
-                                <h3 className="text-lg font-bold text-amber-500">Table {table.table_number}</h3>
-                                <p className="text-sm text-white/60">{table.seats} seats</p>
+                                <h3 className="text-lg font-bold text-amber-600 dark:text-amber-500">Table {table.table_number}</h3>
+                                <p className="text-sm text-gray-600 dark:text-white/60">{table.seats} seats</p>
                                 {table.description && (
-                                    <p className="text-xs text-white/40 mt-1">{table.description}</p>
+                                    <p className="text-xs text-gray-500 dark:text-white/40 mt-1">{table.description}</p>
                                 )}
                             </div>
                             <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${table.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/10 text-white/40'
@@ -96,10 +96,10 @@ export default function ManagerTablesPage() {
                             </span>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 flex flex-wrap gap-2">
                             <button
                                 onClick={() => { setEditingTable(table); setIsModalOpen(true); }}
-                                className="text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white"
+                                className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-white/60 hover:text-gray-700 dark:hover:text-white"
                             >
                                 Edit
                             </button>
@@ -124,29 +124,29 @@ export default function ManagerTablesPage() {
                 {isModalOpen && (
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 p-4 backdrop-blur-sm"
                     >
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                            className="w-full max-w-md rounded-3xl border border-white/10 bg-[#140d09] p-6 shadow-2xl"
+                            className="w-full max-w-md rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#140d09] p-6 shadow-2xl"
                         >
-                            <h3 className="mb-6 font-heading text-xl text-white">
+                            <h3 className="mb-6 font-heading text-xl text-gray-900 dark:text-white">
                                 {editingTable ? 'Edit Table' : 'Add New Table'}
                             </h3>
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-white/40">Table Number</label>
+                                        <label className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/40">Table Number</label>
                                         <input
                                             name="table_number"
                                             defaultValue={editingTable?.table_number}
                                             required
-                                            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-amber-500/50 outline-none"
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-amber-500/50 outline-none"
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-white/40">Capacity</label>
+                                        <label className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/40">Capacity</label>
                                         <input
                                             name="capacity"
                                             type="number"
@@ -154,18 +154,18 @@ export default function ManagerTablesPage() {
                                             max="20"
                                             defaultValue={editingTable?.seats || 4}
                                             required
-                                            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-amber-500/50 outline-none"
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-amber-500/50 outline-none"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold uppercase text-white/40">Description (optional)</label>
+                                    <label className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/40">Description (optional)</label>
                                     <input
                                         name="description"
                                         defaultValue={editingTable?.description}
                                         placeholder="e.g., Window Seat, VIP Corner"
-                                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-amber-500/50 outline-none"
+                                        className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-amber-500/50 outline-none"
                                     />
                                 </div>
 

@@ -22,9 +22,19 @@ const contactSchema = z.object({
 
 type ContactForm = z.infer<typeof contactSchema>;
 
+/** Empty form state - used for initial state and reset after submission */
+const emptyContactForm: ContactForm = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  subject: '',
+  message: '',
+};
+
 export default function ContactPage() {
   const [settings, setSettings] = useState<FrontendContentPayload>(defaultFrontendSettings);
-  const [form, setForm] = useState<ContactForm>(contactSchema.parse({}));
+  const [form, setForm] = useState<ContactForm>(emptyContactForm);
   const [errors, setErrors] = useState<Partial<Record<keyof ContactForm, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -57,7 +67,7 @@ export default function ContactPage() {
       setSubmitting(false);
       setSent(true);
       toast.success('Message sent successfully.');
-      setForm(contactSchema.parse({}));
+      setForm(emptyContactForm);
     }, 900);
   }
 

@@ -21,7 +21,7 @@ export function StarRatingDisplay({ rating, className }: StarRatingDisplayProps)
           className={cn(index < rounded ? 'fill-[#D9A441] text-[#D9A441]' : 'text-woodAccent')}
         />
       ))}
-      <span className="ml-1 text-xs font-medium text-tableBrown/80">{rating.toFixed(1)}</span>
+      <span className="ml-1 text-xs font-medium text-tableBrown/80 dark:text-white/70">{rating.toFixed(1)}</span>
     </div>
   );
 }

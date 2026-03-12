@@ -201,7 +201,7 @@ export default function BookPage() {
           description="Experience fine dining in an atmosphere of tranquility."
         />
         <div className="mt-10 flex justify-center">
-          <p className="text-ink/60">Loading...</p>
+          <p className="text-ink/60 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -216,7 +216,7 @@ export default function BookPage() {
           description="Experience fine dining in an atmosphere of tranquility."
         />
         <div className="mt-10 flex flex-col items-center justify-center">
-          <p className="text-ink/80 mb-6 text-center">
+          <p className="text-ink/80 mb-6 text-center dark:text-gray-300">
             Please log in to make a reservation.
           </p>
           <Link href="/login?redirect=/book">
@@ -236,7 +236,7 @@ export default function BookPage() {
       />
 
       <Card elevated className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-tableBrown/85">Open the booking modal to complete your table reservation.</p>
+        <p className="text-sm text-tableBrown/85 dark:text-gray-300">Open the booking modal to complete your table reservation.</p>
         <Button onClick={() => setIsModalOpen(true)} aria-label="Open reservation form modal">
           Open Booking Form
         </Button>
@@ -251,7 +251,7 @@ export default function BookPage() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[1.2rem] border border-woodAccent/35 bg-cream p-5 shadow-2xl sm:p-6"
+              className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[1.2rem] border border-woodAccent/35 dark:border-gray-700 bg-cream dark:bg-gray-900 p-5 shadow-2xl sm:p-6"
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -261,13 +261,13 @@ export default function BookPage() {
                 <>
                   <div className="mb-5 flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="font-heading text-3xl text-tableBrown">Reservation Form</h3>
-                      <p className="text-sm text-muted">Complete all fields and submit once.</p>
+                      <h3 className="font-heading text-3xl text-tableBrown dark:text-gray-100">Reservation Form</h3>
+                      <p className="text-sm text-muted dark:text-gray-300">Complete all fields and submit once.</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsModalOpen(false)}
-                      className="rounded-full border border-woodAccent/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-tableBrown hover:bg-warmGray"
+                      className="rounded-full border border-woodAccent/60 dark:border-gray-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-tableBrown dark:text-gray-200 hover:bg-warmGray dark:hover:bg-gray-700"
                       aria-label="Close reservation modal"
                     >
                       Close
@@ -277,7 +277,7 @@ export default function BookPage() {
                   <form className="space-y-5" onSubmit={onSubmit}>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <label htmlFor="reservation-date" className="text-sm font-medium text-tableBrown">
+                        <label htmlFor="reservation-date" className="text-sm font-medium text-tableBrown dark:text-gray-200">
                           Reservation Date
                         </label>
                         <input
@@ -287,11 +287,11 @@ export default function BookPage() {
                           max={maxDate}
                           value={selectedDate}
                           onChange={(event) => setSelectedDate(event.target.value)}
-                          className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                          className="h-11 w-full rounded-xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm dark:text-gray-200"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="party-size" className="text-sm font-medium text-tableBrown">
+                        <label htmlFor="party-size" className="text-sm font-medium text-tableBrown dark:text-gray-200">
                           Party Size
                         </label>
                         <input
@@ -301,33 +301,33 @@ export default function BookPage() {
                           max={20}
                           value={partySize}
                           onChange={(event) => setPartySize(clampPartySize(Number(event.target.value)))}
-                          className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                          className="h-11 w-full rounded-xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm dark:text-gray-200"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-tableBrown">Select Time</p>
-                      <p className="text-xs text-tableBrown/70">Choose any time between 5:00 PM and 9:00 PM</p>
+                      <p className="text-sm font-medium text-tableBrown dark:text-gray-200">Select Time</p>
+                      <p className="text-xs text-tableBrown/70 dark:text-gray-400">Choose any time between 5:00 PM and 9:00 PM</p>
                       <input
                         type="time"
                         value={selectedTimeSlot}
                         onChange={(e) => setSelectedTimeSlot(e.target.value)}
                         min="17:00"
                         max="21:00"
-                        className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                        className="h-11 w-full rounded-xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm text-tableBrown dark:text-gray-200"
                       />
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">                      <div className="space-y-2">
-                      <label htmlFor="duration" className="text-sm font-medium text-tableBrown">
+                      <label htmlFor="duration" className="text-sm font-medium text-tableBrown dark:text-gray-200">
                         Duration (Hours)
                       </label>
                       <select
                         id="duration"
                         value={durationHours}
                         onChange={(event) => setDurationHours(Number(event.target.value))}
-                        className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                        className="h-11 w-full rounded-xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm dark:text-gray-200"
                       >
                         <option value={1}>1 hour</option>
                         <option value={2}>2 hours</option>
@@ -343,9 +343,9 @@ export default function BookPage() {
 
                     {selectedTimeSlot && (
                       <div className="space-y-2">
-                        <p className="text-sm font-medium text-tableBrown">Select Table</p>
+                        <p className="text-sm font-medium text-tableBrown dark:text-gray-200">Select Table</p>
                         {availableTables.length === 0 ? (
-                          <p className="text-sm text-tableBrown/70">No tables available for this time slot.</p>
+                          <p className="text-sm text-tableBrown/70 dark:text-gray-400">No tables available for this time slot.</p>
                         ) : (
                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             {availableTables.map((table) => (
@@ -354,14 +354,14 @@ export default function BookPage() {
                                 type="button"
                                 onClick={() => setSelectedTable(table)}
                                 className={cn(
-                                  'rounded-xl border p-3 text-left transition-colors',
+                                  'rounded-xl border p-3 text-left transition-colors dark:border-gray-600',
                                   selectedTable?.id === table.id
-                                    ? 'border-tableBrown bg-tableBrown/10'
-                                    : 'border-woodAccent bg-white hover:bg-warmGray'
+                                    ? 'border-tableBrown bg-tableBrown/10 dark:bg-gray-700'
+                                    : 'border-woodAccent bg-white dark:bg-gray-800 hover:bg-warmGray dark:hover:bg-gray-700'
                                 )}
                               >
-                                <div className="font-medium text-tableBrown">Table {table.table_number}</div>
-                                <div className="text-xs text-tableBrown/70">
+                                <div className="font-medium text-tableBrown dark:text-gray-200">Table {table.table_number}</div>
+                                <div className="text-xs text-tableBrown/70 dark:text-gray-400">
                                   Seats {table.seats} • {table.description}
                                 </div>
                               </button>
@@ -372,20 +372,20 @@ export default function BookPage() {
                     )}
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">                      <div className="space-y-2 sm:col-span-2">
-                      <label htmlFor="name" className="text-sm font-medium text-tableBrown">
+                      <label htmlFor="name" className="text-sm font-medium text-tableBrown dark:text-gray-200">
                         Full Name
                       </label>
                       <input
                         id="name"
                         type="text"
                         {...register('name')}
-                        className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                        className="h-11 w-full rounded-xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm dark:text-gray-200"
                       />
                       {errors.name && <p className="text-xs text-[#E07065]">{errors.name.message}</p>}
                     </div>
 
                       <div className="space-y-2">
-                        <label htmlFor="email" className="text-sm font-medium text-tableBrown">
+                        <label htmlFor="email" className="text-sm font-medium text-tableBrown dark:text-gray-200">
                           Email
                         </label>
                         <input
@@ -393,34 +393,34 @@ export default function BookPage() {
                           type="email"
                           {...register('email')}
                           readOnly
-                          className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                          className="h-11 w-full rounded-xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm dark:text-gray-200"
                         />
                         {errors.email && <p className="text-xs text-[#E07065]">{errors.email.message}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <label htmlFor="phone" className="text-sm font-medium text-tableBrown">
+                        <label htmlFor="phone" className="text-sm font-medium text-tableBrown dark:text-gray-200">
                           Phone Number
                         </label>
                         <input
                           id="phone"
                           type="tel"
                           {...register('phone')}
-                          className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                          className="h-11 w-full rounded-xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm dark:text-gray-200"
                         />
                         {errors.phone && <p className="text-xs text-[#E07065]">{errors.phone.message}</p>}
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="special_requests" className="text-sm font-medium text-tableBrown">
+                      <label htmlFor="special_requests" className="text-sm font-medium text-tableBrown dark:text-gray-200">
                         Special Requests (Optional)
                       </label>
                       <textarea
                         id="special_requests"
                         rows={4}
                         {...register('special_requests')}
-                        className="w-full rounded-xl border border-woodAccent bg-white px-3 py-2 text-sm"
+                        className="w-full rounded-xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-gray-200"
                       />
                       {errors.special_requests && <p className="text-xs text-[#E07065]">{errors.special_requests.message}</p>}
                     </div>
@@ -439,18 +439,18 @@ export default function BookPage() {
 
               {createdReservation && (
                 <div className="space-y-6 text-center">
-                  <h3 className="font-heading text-3xl text-tableBrown">Reservation Confirmed</h3>
-                  <p className="text-sm text-muted">Your table request is complete. Save this confirmation code.</p>
-                  <div className="mx-auto max-w-sm rounded-2xl border border-woodAccent bg-white p-6">
-                    <p className="text-xs uppercase tracking-[0.2em] text-tableBrown/70">Confirmation Code</p>
-                    <p className="mt-2 font-heading text-4xl tracking-[0.15em] text-tableBrown">
+                  <h3 className="font-heading text-3xl text-tableBrown dark:text-gray-100">Reservation Confirmed</h3>
+                  <p className="text-sm text-muted dark:text-gray-300">Your table request is complete. Save this confirmation code.</p>
+                  <div className="mx-auto max-w-sm rounded-2xl border border-woodAccent dark:border-gray-600 bg-white dark:bg-gray-800 p-6">
+                    <p className="text-xs uppercase tracking-[0.2em] text-tableBrown/70 dark:text-gray-400">Confirmation Code</p>
+                    <p className="mt-2 font-heading text-4xl tracking-[0.15em] text-tableBrown dark:text-gray-100">
                       {createdReservation.confirmation_code}
                     </p>
-                    <p className="mt-3 text-xs text-muted">
+                    <p className="mt-3 text-xs text-muted dark:text-gray-400">
                       {format(parseISO(createdReservation.date), 'PPP')} at {createdReservation.time_slot} for {createdReservation.party_size} guests
                     </p>
                   </div>
-                  <p className="text-xs text-tableBrown/80">Take a screenshot or save this code for lookup and updates.</p>
+                  <p className="text-xs text-tableBrown/80 dark:text-gray-400">Take a screenshot or save this code for lookup and updates.</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     <Button variant="secondary" onClick={resetModalForm} aria-label="Book another reservation">
                       Book Another

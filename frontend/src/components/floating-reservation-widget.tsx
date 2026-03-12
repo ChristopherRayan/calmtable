@@ -16,7 +16,7 @@ export function FloatingReservationWidget() {
       <Link
         href="/book"
         aria-label="Open reservation page"
-        className="inline-flex items-center gap-2 rounded-full bg-tableBrown px-4 py-3 text-sm font-semibold text-white shadow-soft hover:bg-tableBrownLight"
+        className="inline-flex items-center gap-2 rounded-full bg-tableBrown px-4 py-3 text-sm font-semibold text-white shadow-soft hover:bg-tableBrownLight dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
       >
         <CalendarDays size={18} />
         Book a Table

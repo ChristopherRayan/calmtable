@@ -8,9 +8,9 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const toneClasses: Record<NonNullable<BadgeProps['tone']>, string> = {
-  neutral: 'bg-warmGray text-tableBrown',
-  accent: 'bg-tableBrown text-white',
-  outline: 'border border-woodAccent text-tableBrown bg-transparent',
+  neutral: 'bg-warmGray text-tableBrown dark:bg-warmGray/20 dark:text-white/90',
+  accent: 'bg-tableBrown text-white dark:bg-white/10 dark:text-white',
+  outline: 'border border-woodAccent text-tableBrown bg-transparent dark:border-white/20 dark:text-white/90 dark:bg-transparent',
 };
 
 export function Badge({ className, tone = 'neutral', ...props }: BadgeProps) {

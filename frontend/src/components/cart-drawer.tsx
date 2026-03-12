@@ -63,23 +63,23 @@ export function CartDrawer() {
           />
 
           <motion.aside
-            className="fixed right-0 top-0 z-[80] flex h-screen w-full max-w-md flex-col border-l border-woodAccent/40 bg-cream shadow-2xl"
+            className="fixed right-0 top-0 z-[80] flex h-screen w-full max-w-md flex-col border-l border-woodAccent/40 bg-cream dark:bg-gray-900 shadow-2xl"
             initial={{ x: 420 }}
             animate={{ x: 0 }}
             exit={{ x: 420 }}
             transition={{ type: 'spring', stiffness: 260, damping: 30 }}
             aria-label="Shopping cart drawer"
           >
-            <div className="flex items-center justify-between border-b border-woodAccent/40 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-woodAccent/40 dark:border-gray-700 px-5 py-4">
               <div className="flex items-center gap-2">
-                <ShoppingBag size={18} className="text-tableBrown" />
-                <h2 className="font-heading text-2xl text-tableBrown">Your Cart</h2>
-                <span className="rounded-full bg-warmGray px-2 py-0.5 text-xs font-semibold text-tableBrown">{itemCount}</span>
+                <ShoppingBag size={18} className="text-tableBrown dark:text-gray-300" />
+                <h2 className="font-heading text-2xl text-tableBrown dark:text-gray-300">Your Cart</h2>
+                <span className="rounded-full bg-warmGray dark:bg-gray-800 px-2 py-0.5 text-xs font-semibold text-tableBrown dark:text-gray-300">{itemCount}</span>
               </div>
               <button
                 type="button"
                 aria-label="Close cart"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-woodAccent text-tableBrown"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-woodAccent dark:border-gray-600 text-tableBrown dark:text-gray-300"
                 onClick={() => setIsOpen(false)}
               >
                 <X size={16} />
@@ -88,45 +88,45 @@ export function CartDrawer() {
 
             <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
               {!isAuthenticated && (
-                <div className="rounded-2xl border border-woodAccent/40 bg-warmGray p-4 text-center text-sm text-tableBrown/80">
+                <div className="rounded-2xl border border-woodAccent/40 dark:border-gray-700 bg-warmGray dark:bg-gray-800 p-4 text-center text-sm text-tableBrown/80 dark:text-gray-400">
                   <p>Sign in as a customer to checkout.</p>
                   <Link
                     href="/login?next=/menu"
-                    className="mt-3 inline-flex rounded-full bg-tableBrown px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-tableBrownLight"
+                    className="mt-3 inline-flex rounded-full bg-tableBrown dark:bg-gray-700 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white dark:text-gray-100 hover:bg-tableBrownLight"
                   >
                     Sign In
                   </Link>
                 </div>
               )}
               {isAuthenticated && user?.is_staff && (
-                <div className="rounded-2xl border border-woodAccent/40 bg-warmGray p-4 text-center text-sm text-tableBrown/80">
+                <div className="rounded-2xl border border-woodAccent/40 dark:border-gray-700 bg-warmGray dark:bg-gray-800 p-4 text-center text-sm text-tableBrown/80 dark:text-gray-400">
                   Staff accounts can view the cart but cannot checkout.
                 </div>
               )}
               {items.length === 0 && (
-                <div className="rounded-2xl border border-woodAccent/40 bg-warmGray p-4 text-center text-sm text-tableBrown/80">
+                <div className="rounded-2xl border border-woodAccent/40 dark:border-gray-700 bg-warmGray dark:bg-gray-800 p-4 text-center text-sm text-tableBrown/80 dark:text-gray-400">
                   Your cart is empty. Add dishes from the menu.
                 </div>
               )}
 
               {items.map((item) => (
-                <div key={item.menu_item_id} className="rounded-2xl border border-woodAccent/40 bg-warmGray p-3">
+                <div key={item.menu_item_id} className="rounded-2xl border border-woodAccent/40 dark:border-gray-700 bg-warmGray dark:bg-gray-800 p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-tableBrown">{item.name}</p>
-                      <p className="text-xs text-tableBrown/80">{formatKwacha(item.price)} each</p>
+                      <p className="font-semibold text-tableBrown dark:text-gray-300">{item.name}</p>
+                      <p className="text-xs text-tableBrown/80 dark:text-gray-400">{formatKwacha(item.price)} each</p>
                     </div>
                     <button
                       type="button"
                       aria-label={`Remove ${item.name} from cart`}
-                      className="text-tableBrown/70 hover:text-[#E07065]"
+                      className="text-tableBrown/70 dark:text-gray-500 hover:text-[#E07065]"
                       onClick={() => removeItem(item.menu_item_id)}
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
                   <div className="mt-3 flex items-center justify-between">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-woodAccent bg-warmGray px-2 py-1">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-woodAccent dark:border-gray-600 bg-warmGray dark:bg-gray-800 px-2 py-1">
                       <button
                         type="button"
                         aria-label={`Decrease quantity for ${item.name}`}
@@ -134,7 +134,7 @@ export function CartDrawer() {
                       >
                         <Minus size={14} />
                       </button>
-                      <span className="min-w-6 text-center text-sm font-semibold text-tableBrown">{item.quantity}</span>
+                      <span className="min-w-6 text-center text-sm font-semibold text-tableBrown dark:text-gray-300">{item.quantity}</span>
                       <button
                         type="button"
                         aria-label={`Increase quantity for ${item.name}`}
@@ -143,16 +143,16 @@ export function CartDrawer() {
                         <Plus size={14} />
                       </button>
                     </div>
-                    <p className="text-sm font-semibold text-tableBrown">{formatKwacha(Number(item.price) * item.quantity)}</p>
+                    <p className="text-sm font-semibold text-tableBrown dark:text-gray-300">{formatKwacha(Number(item.price) * item.quantity)}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-woodAccent/40 bg-warmGray/70 px-5 py-4">
+            <div className="border-t border-woodAccent/40 dark:border-gray-700 bg-warmGray/70 dark:bg-gray-800/70 px-5 py-4">
               <div className="mb-3 flex items-center justify-between text-sm">
-                <span className="text-tableBrown/80">Total</span>
-                <span className="font-semibold text-tableBrown">{formatKwacha(totalAmount)}</span>
+                <span className="text-tableBrown/80 dark:text-gray-400">Total</span>
+                <span className="font-semibold text-tableBrown dark:text-gray-300">{formatKwacha(totalAmount)}</span>
               </div>
               <Button
                 className="w-full"

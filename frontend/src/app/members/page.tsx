@@ -86,7 +86,7 @@ export default function MembersPage() {
   return (
     <div className="min-h-screen">
       {/* ─── Hero Banner ──────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#2a1810] via-[#3d2318] to-[#1a0f08] py-24 text-center">
+      <div className="relative overflow-hidden bg-gradient-to-br from-stone-100 via-stone-50 to-white dark:from-[#2a1810] dark:via-[#3d2318] dark:to-[#1a0f08] py-24 text-center">
         {/* decorative rings */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="h-[600px] w-[600px] rounded-full border border-amber-500/10" />
@@ -99,20 +99,20 @@ export default function MembersPage() {
         <div className="pointer-events-none absolute right-1/4 bottom-1/4 h-48 w-48 translate-x-1/2 translate-y-1/2 rounded-full bg-orange-600/15 blur-3xl" />
 
         <div className="relative page-shell">
-          <span className="inline-block rounded-full border border-amber-400/30 bg-amber-500/10 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300">
+          <span className="inline-block rounded-full border border-amber-400/30 bg-amber-500/10 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-300">
             Premium Membership
           </span>
-          <h1 className="mt-4 font-heading text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 font-heading text-4xl font-bold text-ink dark:text-white sm:text-5xl lg:text-6xl">
             The <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400">CalmTable</span> Lounge
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/60">
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-stone-600 dark:text-white/60">
             {membersContent.description}
           </p>
         </div>
       </div>
 
       {/* ─── Staff Team ───────────────────────────────────── */}
-      <section className="bg-gradient-to-b from-[#16100a]/50 to-transparent py-16">
+      <section className="bg-stone-100 dark:bg-gradient-to-b dark:from-[#16100a]/50 dark:to-transparent py-16">
         <div className="page-shell">
           <SectionHeading
             eyebrow="Our Team"
@@ -123,11 +123,11 @@ export default function MembersPage() {
           {!loaded ? (
             <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-56 animate-pulse rounded-2xl bg-white/5" />
+                <div key={i} className="h-56 animate-pulse rounded-2xl bg-stone-200 dark:bg-white/5" />
               ))}
             </div>
           ) : staffMembers.length === 0 ? (
-            <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-sm text-white/40">
+            <div className="mt-10 rounded-2xl border border-stone-200 dark:border-white/10 bg-stone-100 dark:bg-white/5 p-10 text-center text-sm text-stone-500 dark:text-white/40">
               Staff profiles will appear here once published by admin.
             </div>
           ) : (
@@ -142,14 +142,14 @@ export default function MembersPage() {
                 return (
                   <div
                     key={member.id}
-                    className={`group relative flex flex-col items-center overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#2a1810]/70 to-[#1a0f08]/50 p-8 text-center backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:border-amber-500/30 hover:shadow-2xl ${glow}`}
+                    className={`group relative flex flex-col items-center overflow-hidden rounded-[2rem] border border-stone-200 dark:border-white/10 bg-white dark:bg-gradient-to-br dark:from-[#2a1810]/70 dark:to-[#1a0f08]/50 p-8 text-center backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:border-amber-500/30 hover:shadow-2xl ${glow}`}
                   >
                     {/* decorative background glow */}
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(140,92,41,0.15),transparent_70%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
                     {/* avatar container */}
                     <div className="relative mb-6">
-                      <div className="relative h-48 w-48 overflow-hidden rounded-3xl border-2 border-white/20 bg-[#2a1810] shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:border-amber-500/40">
+                      <div className="relative h-48 w-48 overflow-hidden rounded-3xl border-2 border-stone-200 dark:border-white/20 bg-stone-100 dark:bg-[#2a1810] shadow-xl dark:shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:border-amber-500/40">
                         <Image
                           src={src}
                           alt={imageSrc ? member.name : `${initials} avatar`}
@@ -159,20 +159,20 @@ export default function MembersPage() {
                           unoptimized={shouldSkipImageOptimization(src)}
                         />
                         {!imageSrc && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#8c5c29]/60 to-[#3d2318]/80 text-3xl font-bold text-white">
+                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-stone-200 to-stone-300 dark:from-[#8c5c29]/60 dark:to-[#3d2318]/80 text-3xl font-bold text-ink dark:text-white">
                             {initials}
                           </div>
                         )}
                       </div>
                       {/* floating role icon */}
-                      <div className={`absolute -right-3 -top-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br ${badge} shadow-lg ring-4 ring-[#1a0f08]`}>
+                      <div className={`absolute -right-3 -top-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br ${badge} shadow-lg ring-4 ring-stone-200 dark:ring-[#1a0f08]`}>
                         <RoleIcon size={18} className="text-white" />
                       </div>
                     </div>
 
                     {/* identity section */}
                     <div className="relative z-10 space-y-2">
-                      <h3 className="font-heading text-2xl font-bold text-white transition-colors group-hover:text-amber-400">{member.name}</h3>
+                      <h3 className="font-heading text-2xl font-bold text-ink dark:text-white transition-colors group-hover:text-amber-400">{member.name}</h3>
                       <div className={`inline-block rounded-full bg-gradient-to-r ${badge} px-4 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white shadow-md`}>
                         {member.role}
                       </div>
@@ -181,24 +181,24 @@ export default function MembersPage() {
                     {/* description bubble (partially rounded as requested) */}
                     {member.bio ? (
                       <div className="relative mt-8 group/bubble">
-                        <div className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-l border-t border-white/10 bg-[#1a0f08]/60 backdrop-blur-md" />
-                        <div className="relative rounded-xl border border-white/10 bg-[#1a0f08]/60 p-5 backdrop-blur-md transition-colors group-hover:border-amber-500/20">
-                          <p className="text-xs leading-relaxed text-white/60 italic">
+                        <div className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-l border-t border-stone-200 dark:border-white/10 bg-stone-100 dark:bg-[#1a0f08]/60 backdrop-blur-md" />
+                        <div className="relative rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#1a0f08]/60 p-5 backdrop-blur-md transition-colors group-hover:border-amber-500/20">
+                          <p className="text-xs leading-relaxed text-stone-600 dark:text-white/60 italic">
                             "{member.bio}"
                           </p>
                         </div>
                       </div>
                     ) : (
-                      <div className="mt-8 text-[10px] uppercase tracking-[0.2em] text-white/20">
+                      <div className="mt-8 text-[10px] uppercase tracking-[0.2em] text-stone-400 dark:text-white/20">
                         CalmTable Family
                       </div>
                     )}
 
                     {/* bottom footer decor */}
                     <div className="mt-8 flex w-full items-center justify-center gap-3">
-                      <div className="h-px w-8 bg-gradient-to-r from-transparent to-white/10" />
+                      <div className="h-px w-8 bg-gradient-to-r from-transparent to-stone-200 dark:to-white/10" />
                       <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-500/40">Est. 2024</span>
-                      <div className="h-px w-8 bg-gradient-to-l from-transparent to-white/10" />
+                      <div className="h-px w-8 bg-gradient-to-l from-transparent to-stone-200 dark:to-white/10" />
                     </div>
                   </div>
                 );
@@ -222,17 +222,17 @@ export default function MembersPage() {
             return (
               <div
                 key={benefit.title}
-                className="group relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-br from-[#2a1810]/60 to-[#1a0f08]/40 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-900/20"
+                className="group relative overflow-hidden rounded-2xl border border-stone-200 dark:border-white/8 bg-white dark:bg-gradient-to-br dark:from-[#2a1810]/60 dark:to-[#1a0f08]/40 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-900/20"
               >
                 {/* shimmer */}
                 <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-400 ring-1 ring-amber-500/25">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-500 ring-1 ring-amber-500/25">
                     <Icon size={20} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-400">{benefit.title}</p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-white/65">{benefit.description}</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-500">{benefit.title}</p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-stone-600 dark:text-white/65">{benefit.description}</p>
                   </div>
                 </div>
               </div>

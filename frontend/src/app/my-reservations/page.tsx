@@ -63,7 +63,7 @@ export default function MyReservationsPage() {
       )}
 
       {!pageLoading && reservations.length === 0 && (
-        <Card elevated className="mt-6 text-center text-sm text-tableBrown/80">
+        <Card elevated className="mt-6 text-center text-sm text-tableBrown/80 dark:text-white/80">
           No reservations found for this account yet.
         </Card>
       )}
@@ -71,12 +71,12 @@ export default function MyReservationsPage() {
       {!pageLoading && reservations.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="mt-6 space-y-4">
           {reservations.map((reservation) => (
-            <Card key={reservation.confirmation_code} elevated className="space-y-3">
+            <Card key={reservation.confirmation_code} elevated className="bg-white dark:bg-[#1a0f08] rounded-xl border border-stone-200 dark:border-white/10 space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="font-heading text-2xl text-tableBrown">{reservation.confirmation_code}</h2>
+                <h2 className="font-heading text-2xl text-tableBrown dark:text-white/90">{reservation.confirmation_code}</h2>
                 <StatusBadge status={reservation.status} />
               </div>
-              <dl className="grid gap-2 text-sm text-tableBrown/90 sm:grid-cols-2">
+              <dl className="grid gap-2 text-sm text-tableBrown/90 dark:text-white/90 sm:grid-cols-2">
                 <div>
                   <dt className="font-semibold">Date</dt>
                   <dd>{format(parseISO(reservation.date), 'PPP')}</dd>

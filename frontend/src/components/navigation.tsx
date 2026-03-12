@@ -215,7 +215,7 @@ export function Navigation() {
         'fixed left-0 right-0 top-0 z-50 transition-all duration-300',
         isTransparentNav
           ? 'border-b border-transparent bg-transparent'
-          : 'border-b border-woodAccent/20 bg-gradient-to-b from-cream/95 to-cream/85 backdrop-blur-md'
+          : 'border-b border-woodAccent/20 dark:border-gray-700 bg-gradient-to-b from-cream/95 to-cream/85 dark:from-gray-900 dark:to-gray-900 backdrop-blur-md'
       )}
     >
       <nav className="page-shell flex h-14 items-center justify-between" aria-label="Main">
@@ -223,10 +223,10 @@ export function Navigation() {
           href="/"
           className={cn(
             'font-heading text-xl font-bold uppercase tracking-[0.14em]',
-            isTransparentNav ? 'text-white' : 'text-woodAccent'
+            isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-200'
           )}
         >
-          <span className={cn(isTransparentNav ? 'text-white/90' : 'text-ink/92')}>The</span> CalmTable
+          <span className={cn(isTransparentNav ? 'text-white/90' : 'text-ink dark:text-gray-300')}>The</span> CalmTable
         </Link>
 
         <ul className="hidden items-center gap-8 lg:flex">
@@ -235,8 +235,8 @@ export function Navigation() {
               <Link
                 href={link.href}
                 className={cn(
-                  'relative text-[11px] font-medium uppercase tracking-[0.18em] hover:text-woodAccent',
-                  isTransparentNav ? 'text-white/80' : 'text-ink',
+                  'relative text-[11px] font-medium uppercase tracking-[0.18em] hover:text-woodAccent dark:hover:text-gray-300',
+                  isTransparentNav ? 'text-white/80' : 'text-ink dark:text-gray-300',
                   isActive(link.href) && 'text-woodAccent'
                 )}
               >
@@ -255,8 +255,8 @@ export function Navigation() {
               <button
                 type="button"
                 className={cn(
-                  'relative inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-woodAccent/10',
-                  isTransparentNav ? 'text-white' : 'text-woodAccent'
+                  'relative inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-woodAccent/10 dark:hover:bg-gray-700',
+                  isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-300'
                 )}
                 onClick={() => {
                   setNotificationsOpen((current) => !current);
@@ -267,22 +267,22 @@ export function Navigation() {
               >
                 <Bell size={18} />
                 {unreadCount > 0 && (
-                  <span className="absolute right-1 top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#E07065] px-1 text-[9px] font-semibold text-white">
+                  <span className="absolute right-1 top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#E07065] dark:bg-red-900 px-1 text-[9px] font-semibold text-white dark:text-gray-100">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </button>
               <div
                 className={cn(
-                  'absolute right-0 top-[calc(100%+10px)] w-80 origin-top-right rounded-md border border-woodAccent/20 bg-warmGray shadow-2xl',
+                  'absolute right-0 top-[calc(100%+10px)] w-80 origin-top-right rounded-md border border-woodAccent/20 dark:border-gray-700 bg-warmGray dark:bg-gray-800 shadow-2xl',
                   notificationsOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
                 )}
               >
-                <div className="flex items-center justify-between border-b border-woodAccent/20 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink">Notifications</p>
+                <div className="flex items-center justify-between border-b border-woodAccent/20 dark:border-gray-700 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink dark:text-gray-300">Notifications</p>
                   <button
                     type="button"
-                    className="text-[10px] uppercase tracking-[0.08em] text-muted hover:text-woodAccent"
+                    className="text-[10px] uppercase tracking-[0.08em] text-muted dark:text-gray-500 hover:text-woodAccent dark:hover:text-gray-300"
                     onClick={() => void clearNotifications()}
                   >
                     Clear all
@@ -290,17 +290,17 @@ export function Navigation() {
                 </div>
                 <div className="max-h-72 overflow-y-auto">
                   {loadingNotifications ? (
-                    <p className="px-4 py-8 text-center text-xs text-muted">Loading notifications...</p>
+                    <p className="px-4 py-8 text-center text-xs text-muted dark:text-gray-500">Loading notifications...</p>
                   ) : notifications.length === 0 ? (
-                    <p className="px-4 py-8 text-center text-xs text-muted">No notifications yet.</p>
+                    <p className="px-4 py-8 text-center text-xs text-muted dark:text-gray-500">No notifications yet.</p>
                   ) : (
                     notifications.map((notification) => (
                       <button
                         key={notification.id}
                         type="button"
                         className={cn(
-                          'block w-full border-b border-woodAccent/15 px-4 py-3 text-left last:border-b-0 hover:bg-woodAccent/8',
-                          !notification.is_read && 'bg-woodAccent/10'
+                          'block w-full border-b border-woodAccent/15 dark:border-gray-700 px-4 py-3 text-left last:border-b-0 hover:bg-woodAccent/8 dark:hover:bg-gray-700/50',
+                          !notification.is_read && 'bg-woodAccent/10 dark:bg-gray-700/50'
                         )}
                         onClick={() => {
                           void markNotificationRead(notification.id).then((updated) => {
@@ -310,14 +310,14 @@ export function Navigation() {
                           });
                         }}
                       >
-                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-tableBrown">
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-tableBrown dark:text-gray-300">
                           {notification.title}
                         </p>
-                        <p className="mt-1 text-sm text-ink">{notification.message}</p>
-                        <p className="mt-1 text-[11px] text-muted">
+                        <p className="mt-1 text-sm text-ink dark:text-gray-300">{notification.message}</p>
+                        <p className="mt-1 text-[11px] text-muted dark:text-gray-500">
                           {parseNotificationDetail(notification.payload)}
                         </p>
-                        <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-muted">
+                        <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-muted dark:text-gray-500">
                           {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                         </p>
                       </button>
@@ -331,15 +331,15 @@ export function Navigation() {
           <button
             type="button"
             className={cn(
-              'relative inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-woodAccent/10',
-              isTransparentNav ? 'text-white' : 'text-woodAccent'
+              'relative inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-woodAccent/10 dark:hover:bg-gray-700',
+              isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-300'
             )}
             onClick={handleOpenCart}
             aria-label="Open cart"
           >
             <ShoppingBag size={18} />
             {itemCount > 0 && (
-              <span className="absolute right-1.5 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-tableBrown px-1 text-[9px] font-semibold text-white">
+              <span className="absolute right-1.5 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-tableBrown dark:bg-gray-700 px-1 text-[9px] font-semibold text-white dark:text-gray-100">
                 {itemCount}
               </span>
             )}
@@ -348,8 +348,8 @@ export function Navigation() {
           <button
             type="button"
             className={cn(
-              'inline-flex h-10 w-10 items-center justify-center rounded-full border border-woodAccent/35 hover:bg-woodAccent/10',
-              isTransparentNav ? 'text-white' : 'text-woodAccent'
+              'inline-flex h-10 w-10 items-center justify-center rounded-full border border-woodAccent/35 dark:border-gray-600 hover:bg-woodAccent/10 dark:hover:bg-gray-700',
+              isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-300'
             )}
             onClick={toggleTheme}
             aria-label="Toggle theme"
@@ -361,8 +361,8 @@ export function Navigation() {
             <Link
               href="/login"
               className={cn(
-                'ml-2 inline-flex items-center gap-2 rounded-sm border border-woodAccent/35 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.12em] hover:bg-tableBrown hover:text-white',
-                isTransparentNav ? 'text-white' : 'text-woodAccent'
+                'ml-2 inline-flex items-center gap-2 rounded-sm border border-woodAccent/35 dark:border-gray-600 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.12em] hover:bg-tableBrown hover:text-white dark:hover:bg-gray-700 dark:hover:text-gray-100',
+                isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-300'
               )}
             >
               <UserRound size={14} />
@@ -374,7 +374,7 @@ export function Navigation() {
             <div ref={profileWrapRef} className="relative ml-2">
               <button
                 type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-woodAccent bg-tableBrown text-xs font-bold tracking-[0.05em] text-white"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-woodAccent dark:border-gray-500 bg-tableBrown dark:bg-gray-700 text-xs font-bold tracking-[0.05em] text-white dark:text-gray-100"
                 onClick={() => {
                   setProfileOpen((current) => !current);
                   setNotificationsOpen(false);
@@ -394,19 +394,19 @@ export function Navigation() {
               </button>
               <div
                 className={cn(
-                  'absolute right-0 top-[calc(100%+10px)] w-64 origin-top-right rounded-md border border-woodAccent/20 bg-warmGray shadow-2xl',
+                  'absolute right-0 top-[calc(100%+10px)] w-64 origin-top-right rounded-md border border-woodAccent/20 dark:border-gray-700 bg-warmGray dark:bg-gray-800 shadow-2xl',
                   profileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
                 )}
               >
-                <div className="border-b border-woodAccent/20 px-4 py-3">
-                  <p className="text-sm font-semibold text-ink">{profileName}</p>
-                  <p className="text-xs text-muted">{user?.email}</p>
+                <div className="border-b border-woodAccent/20 dark:border-gray-700 px-4 py-3">
+                  <p className="text-sm font-semibold text-ink dark:text-gray-200">{profileName}</p>
+                  <p className="text-xs text-muted dark:text-gray-500">{user?.email}</p>
                 </div>
                 <div className="py-2">
                   <Link
                     href="/profile"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 hover:bg-woodAccent/10 hover:text-ink"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50 hover:text-ink dark:hover:text-gray-200"
                   >
                     <UserRound size={15} />
                     My Profile
@@ -415,7 +415,7 @@ export function Navigation() {
                     <Link
                       href="/my-reservations"
                       onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 hover:bg-woodAccent/10 hover:text-ink"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50 hover:text-ink dark:hover:text-gray-200"
                     >
                       <BookOpen size={15} />
                       My Reservations
@@ -425,7 +425,7 @@ export function Navigation() {
                     <Link
                       href="/my-orders"
                       onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 hover:bg-woodAccent/10 hover:text-ink"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50 hover:text-ink dark:hover:text-gray-200"
                     >
                       <Receipt size={15} />
                       My Orders
@@ -435,7 +435,7 @@ export function Navigation() {
                     <Link
                       href="/admin/"
                       onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 hover:bg-woodAccent/10 hover:text-ink"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50 hover:text-ink dark:hover:text-gray-200"
                     >
                       <BookOpen size={15} />
                       Admin Panel
@@ -444,7 +444,7 @@ export function Navigation() {
                   <button
                     type="button"
                     onClick={() => void handleLogout()}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#E07065] hover:bg-[#E07065]/10"
+                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#E07065] hover:bg-[#E07065]/10 dark:hover:bg-gray-700/50"
                   >
                     <LogOut size={15} />
                     Sign Out
@@ -458,8 +458,8 @@ export function Navigation() {
         <button
           type="button"
           className={cn(
-            'inline-flex h-10 w-10 items-center justify-center rounded-full border border-woodAccent/35 md:hidden',
-            isTransparentNav ? 'text-white' : 'text-woodAccent'
+            'inline-flex h-10 w-10 items-center justify-center rounded-full border border-woodAccent/35 dark:border-gray-600 md:hidden',
+            isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-300'
           )}
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           onClick={() => setMobileOpen((current) => !current)}
@@ -474,7 +474,7 @@ export function Navigation() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="border-t border-woodAccent/20 bg-cream md:hidden"
+            className="border-t border-woodAccent/20 dark:border-gray-700 bg-cream dark:bg-gray-900 md:hidden"
           >
             <ul className="page-shell flex flex-col gap-1 py-4">
               {navLinks.map((link) => (
@@ -485,8 +485,8 @@ export function Navigation() {
                     className={cn(
                       'block rounded-lg px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em]',
                       isActive(link.href)
-                        ? 'bg-woodAccent/18 text-woodAccent'
-                        : 'text-ink/80 hover:bg-woodAccent/10'
+                        ? 'bg-woodAccent/18 dark:bg-gray-700/50 text-woodAccent dark:text-gray-200'
+                        : 'text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50'
                     )}
                   >
                     {link.label}
@@ -496,7 +496,7 @@ export function Navigation() {
               <li className="grid grid-cols-3 gap-2 pt-2">
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 px-3 py-2 text-woodAccent"
+                  className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 dark:border-gray-600 px-3 py-2 text-woodAccent dark:text-gray-300"
                   onClick={() => {
                     handleOpenCart();
                     setMobileOpen(false);
@@ -507,7 +507,7 @@ export function Navigation() {
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 px-3 py-2 text-woodAccent"
+                  className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 dark:border-gray-600 px-3 py-2 text-woodAccent dark:text-gray-300"
                   onClick={toggleTheme}
                   aria-label="Toggle theme"
                 >
@@ -516,7 +516,7 @@ export function Navigation() {
                 {isAuthenticated ? (
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 px-3 py-2 text-[#E07065]"
+                    className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 dark:border-gray-600 px-3 py-2 text-[#E07065]"
                     onClick={() => {
                       void handleLogout();
                       setMobileOpen(false);
@@ -528,7 +528,7 @@ export function Navigation() {
                 ) : (
                   <Link
                     href="/login"
-                    className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 px-3 py-2 text-woodAccent"
+                    className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 dark:border-gray-600 px-3 py-2 text-woodAccent dark:text-gray-300"
                     onClick={() => setMobileOpen(false)}
                   >
                     <UserRound size={16} />
@@ -539,7 +539,7 @@ export function Navigation() {
                 <Link
                   href="/book"
                   onClick={() => setMobileOpen(false)}
-                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-tableBrown px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-white"
+                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-tableBrown dark:bg-gray-700 px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-white dark:text-gray-100"
                 >
                   <Phone size={14} />
                   Reserve a Table

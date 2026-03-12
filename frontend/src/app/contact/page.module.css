@@ -107,6 +107,15 @@
   text-transform: uppercase;
 }
 
+[data-theme='dark'] .formSubmit {
+  background: #2a1810;
+  color: #f4e9db;
+}
+
+[data-theme='dark'] .formSubmit:hover {
+  background: #3d2318;
+}
+
 .formSubmit:hover {
   background: rgb(var(--table-brown-light-rgb));
 }
@@ -154,6 +163,11 @@
   background: rgb(var(--table-brown-rgb));
   color: rgba(253, 251, 247, 0.92);
   padding: 1.8rem 1.3rem;
+}
+
+[data-theme='dark'] .infoCard {
+  background: #1a0f08;
+  border: 1px solid rgba(210, 180, 140, 0.15);
 }
 
 .infoSection {
@@ -274,6 +288,10 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
+[data-theme='dark'] .mapLabel {
+  background: #2a1810;
+}
+
 .footer {
   border-top: 1px solid rgb(var(--wood-accent-rgb) / 0.16);
   display: flex;
@@ -297,6 +315,7 @@
 }
 
 @media (min-width: 768px) {
+
   .sectionHeader,
   .contactGrid,
   .footer {
@@ -319,6 +338,7 @@
 }
 
 @media (min-width: 1024px) {
+
   .sectionHeader,
   .contactGrid,
   .footer {
@@ -342,6 +362,7 @@
 }
 
 @media (min-width: 1536px) {
+
   .sectionHeader,
   .contactGrid,
   .footer {
@@ -360,4 +381,4 @@
     text-align: center;
     white-space: normal;
   }
-}
+} 

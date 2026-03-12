@@ -8,9 +8,9 @@ interface SectionHeadingProps {
 export function SectionHeading({ eyebrow, title, description }: SectionHeadingProps) {
   return (
     <div className="space-y-3">
-      {eyebrow && <p className="text-xs font-semibold uppercase tracking-[0.24em] text-tableBrown/80">{eyebrow}</p>}
-      <h2 className="font-heading text-3xl text-tableBrown sm:text-4xl">{title}</h2>
-      {description && <p className="max-w-2xl text-sm leading-relaxed text-muted sm:text-base">{description}</p>}
+      {eyebrow && <p className="text-xs font-semibold uppercase tracking-[0.24em] text-tableBrown/80 dark:text-white/70">{eyebrow}</p>}
+      <h2 className="font-heading text-3xl text-tableBrown sm:text-4xl dark:text-white">{title}</h2>
+      {description && <p className="max-w-2xl text-sm leading-relaxed text-muted sm:text-base dark:text-white/70">{description}</p>}
     </div>
   );
 }

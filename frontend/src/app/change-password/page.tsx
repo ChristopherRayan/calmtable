@@ -54,32 +54,32 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0604] px-4">
-      <div className="w-full max-w-md bg-[#1a0f08] border border-white/10 p-8 rounded-3xl shadow-2xl">
-        <h1 className="text-2xl font-heading font-bold text-white mb-2">Change Password</h1>
-        <p className="text-white/60 text-sm mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0604] dark:bg-[#0a0604] px-4">
+      <div className="w-full max-w-md bg-cream dark:bg-[#1a0f08] border border-stone-200 dark:border-white/10 p-8 rounded-3xl shadow-2xl">
+        <h1 className="text-2xl font-heading font-bold text-ink dark:text-white mb-2">Change Password</h1>
+        <p className="text-ink/60 dark:text-white/60 text-sm mb-6">
           Since this is your first login, you must update your password to continue.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-white/70">New Password</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-ink/70 dark:text-white/70">New Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-12 bg-[#0a0604] border border-white/10 rounded-xl px-4 text-white outline-none focus:border-amber-500/50"
+              className="w-full h-11 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-xl px-4 text-ink dark:text-white outline-none focus:border-amber-500/50"
               placeholder="••••••••"
               required
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Confirm Password</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-ink/70 dark:text-white/70">Confirm Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full h-12 bg-[#0a0604] border border-white/10 rounded-xl px-4 text-white outline-none focus:border-amber-500/50"
+              className="w-full h-11 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-xl px-4 text-ink dark:text-white outline-none focus:border-amber-500/50"
               placeholder="••••••••"
               required
             />

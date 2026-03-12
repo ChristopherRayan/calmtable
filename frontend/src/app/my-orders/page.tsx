@@ -89,7 +89,7 @@ export default function MyOrdersPage() {
       )}
 
       {!pageLoading && orders.length === 0 && (
-        <Card elevated className="mt-6 text-center text-sm text-tableBrown/80">
+        <Card elevated className="mt-6 text-center text-sm text-tableBrown/80 dark:text-white/80">
           No orders yet. Add dishes from the menu and checkout to place your first order.
         </Card>
       )}
@@ -99,50 +99,49 @@ export default function MyOrdersPage() {
           {orders.map((order) => (
             <Card key={order.order_number} elevated className="group relative overflow-hidden border border-[#8c5c29]/20 bg-warmGray/10 backdrop-blur-sm p-0 shadow-xl transition-all hover:border-[#8c5c29]/40 hover:shadow-2xl dark:bg-white/5">
               {/* Receipt Header Decor */}
-              <div className="h-1.5 w-full bg-[#8c5c29]" />
-              
+              <div className="h-1.5 w-full bg-[#8c5c29] dark:bg-amber-500" />
+
               <div className="p-6">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8c5c29]">Official Receipt</span>
-                      <span className="h-px w-8 bg-[#8c5c29]/30" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8c5c29] dark:text-amber-400">Official Receipt</span>
+                      <span className="h-px w-8 bg-[#8c5c29]/30 dark:bg-amber-500/30" />
                     </div>
-                    <h2 className="font-heading text-3xl font-bold text-[#8c5c29]">#{order.order_number}</h2>
-                    <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.1em] text-ink/40">
+                    <h2 className="font-heading text-3xl font-bold text-[#8c5c29] dark:text-amber-400">#{order.order_number}</h2>
+                    <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.1em] text-ink/40 dark:text-white/40">
                       Placed on {format(parseISO(order.created_at), 'dd MMM yyyy • HH:mm')}
                     </p>
                   </div>
-                  
+
                   <div className="text-right">
-                    <div className={`mb-2 inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
-                      order.status === 'completed' 
-                        ? 'bg-green-500/10 text-green-500' 
+                    <div className={`mb-2 inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${order.status === 'completed'
+                        ? 'bg-green-500/10 text-green-500'
                         : 'bg-amber-500/10 text-amber-500'
-                    }`}>
+                      }`}>
                       {statusLabel(order.status)}
                     </div>
-                    <div className="font-heading text-2xl font-bold text-ink/80">{formatKwacha(order.total_amount)}</div>
+                    <div className="font-heading text-2xl font-bold text-ink/80 dark:text-white/80">{formatKwacha(order.total_amount)}</div>
                   </div>
                 </div>
 
-                <div className="space-y-4 border-y border-dashed border-[#8c5c29]/20 py-6">
+                <div className="space-y-4 border-y border-dashed border-[#8c5c29]/20 py-6 dark:border-white/10">
                   {order.items.map((item) => (
                     <div
                       key={item.id}
                       className="flex items-center justify-between gap-4 text-sm"
                     >
                       <div className="flex flex-col">
-                        <span className="font-bold text-ink/80">{item.item_name || item.menu_item_name}</span>
-                        <span className="text-[11px] text-ink/50">Quantity: {item.quantity}</span>
+                        <span className="font-bold text-ink/80 dark:text-white/80">{item.item_name || item.menu_item_name}</span>
+                        <span className="text-[11px] text-ink/50 dark:text-white/50">Quantity: {item.quantity}</span>
                       </div>
-                      <span className="font-heading text-base font-bold text-[#8c5c29]">{formatKwacha(item.subtotal || item.line_total)}</span>
+                      <span className="font-heading text-base font-bold text-[#8c5c29] dark:text-amber-400">{formatKwacha(item.subtotal || item.line_total)}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                  <p className="max-w-[180px] text-[10px] uppercase tracking-[0.05em] text-ink/30">
+                  <p className="max-w-[180px] text-[10px] uppercase tracking-[0.05em] text-ink/30 dark:text-white/30">
                     Thank you for dining with us. This is a computer generated receipt.
                   </p>
                   <Button

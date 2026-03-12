@@ -294,7 +294,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Signature Dishes ────────────────────────────────────────────── */}
-      <section className="py-24 sm:py-32 relative bg-[#0e0805]">
+      <section className="py-24 sm:py-32 relative bg-cream dark:bg-[#0e0805]">
         <div className="pointer-events-none absolute right-0 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-orange-600/5 blur-[120px]" />
 
         <div className="page-shell">
@@ -327,7 +327,7 @@ export default function HomePage() {
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.7, delay: i * 0.1, ease: [0.25, 1, 0.5, 1] }}
                 key={dish.id}
-                className="group relative rounded-3xl bg-[#1a0f08] p-4 ring-1 ring-white/5 hover:ring-white/20 hover:bg-[#22130a] transition-all duration-500"
+                className="group relative rounded-3xl bg-white dark:bg-[#1a0f08] p-4 ring-1 ring-stone-200 dark:ring-white/5 hover:ring-amber-300 dark:hover:ring-white/20 hover:bg-stone-50 dark:hover:bg-[#22130a] transition-all duration-500"
               >
                 <div className="relative aspect-square overflow-hidden rounded-2xl mb-6 bg-cream dark:bg-[#0a0604]">
                   <Image
@@ -338,23 +338,23 @@ export default function HomePage() {
                     unoptimized={shouldSkipImageOptimization(dish.image_url)}
                   />
                   {/* Subtle vignette over image */}
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#000000_120%)] opacity-60" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#000000_120%)] dark:opacity-60 opacity-0" />
                 </div>
 
                 <div className="px-2 pb-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-500/80 mb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-500/80 mb-2">
                     {dish.category}
                   </p>
                   <h3 className="font-bold text-lg text-ink dark:text-white mb-2 leading-tight">
                     {dish.name}
                   </h3>
                   <div className="flex items-center justify-between mt-4">
-                    <p className="text-amber-400 font-heading font-bold text-lg">
+                    <p className="text-amber-600 dark:text-amber-400 font-heading font-bold text-lg">
                       {formatKwacha(dish.price)}
                     </p>
                     <Link
                       href="/menu"
-                      className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center text-ink dark:text-white group-hover:bg-amber-600 group-hover:text-ink dark:text-white transition-colors"
+                      className="h-8 w-8 rounded-full bg-stone-200 dark:bg-white/5 flex items-center justify-center text-ink group-hover:bg-amber-600 group-hover:text-ink transition-colors"
                       aria-label={`Order ${dish.name}`}
                     >
                       +
@@ -368,7 +368,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Reservation Banner ────────────────────────────────────────────── */}
-      <section className="relative py-24 my-24 page-shell rounded-3xl overflow-hidden shadow-2xl shadow-[#000000]">
+      <section className="relative py-24 my-24 page-shell rounded-3xl overflow-hidden shadow-xl shadow-amber-900/10 dark:shadow-[#000000]">
         <div className="absolute inset-0">
           <Image
             src={resBg}
@@ -377,7 +377,7 @@ export default function HomePage() {
             className="object-cover"
             unoptimized={shouldSkipImageOptimization(resBg)}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0604] via-[#0a0604]/90 to-[#0a0604]/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/60 to-transparent dark:from-[#0a0604] dark:via-[#0a0604]/90 dark:to-[#0a0604]/60 backdrop-blur-sm" />
         </div>
 
         <div className="relative z-10 grid lg:grid-cols-2 gap-16 lg:gap-8 items-center p-8 sm:p-16">
@@ -407,33 +407,33 @@ export default function HomePage() {
           {/* Glass Form */}
           <motion.div
             initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}
-            className="relative rounded-3xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#2a1810]/40 p-8 sm:p-10 backdrop-blur-xl shadow-2xl"
+            className="relative rounded-3xl border border-stone-200 dark:border-white/10 bg-white/80 dark:bg-[#2a1810]/40 p-8 sm:p-10 backdrop-blur-xl shadow-xl"
           >
-            <h3 className="font-heading text-2xl font-bold mb-8">Quick Reserevation</h3>
+            <h3 className="font-heading text-2xl font-bold mb-8 text-ink dark:text-white">Quick Reservation</h3>
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="text" placeholder="Your Name" value={resForm.name}
                   onChange={(e) => setResForm({ ...resForm, name: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-white/40 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none"
                 />
                 <input
                   type="tel" placeholder="Phone" value={resForm.phone}
                   onChange={(e) => setResForm({ ...resForm, phone: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-white/40 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="date" min={new Date().toISOString().split('T')[0]} value={resForm.date}
                   onChange={(e) => setResForm({ ...resForm, date: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-white/40 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none [color-scheme:dark]"
+                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none [color-scheme:dark]"
                 />
                 <select
                   value={resForm.time}
                   onChange={(e) => setResForm({ ...resForm, time: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-white/40 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none appearance-none"
+                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none appearance-none"
                 >
                   <option value="" disabled hidden>Time</option>
                   <option value="17:00">05:00 PM</option>
@@ -445,7 +445,7 @@ export default function HomePage() {
               <select
                 value={resForm.guests}
                 onChange={(e) => setResForm({ ...resForm, guests: e.target.value })}
-                className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-white/40 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none appearance-none"
+                className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none appearance-none"
               >
                 <option value="" disabled hidden>Party Size</option>
                 <option value="1">1 Guest</option>

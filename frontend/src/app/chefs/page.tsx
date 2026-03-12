@@ -31,10 +31,10 @@ export default function ChefsPage() {
 
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {chefs.map((chef) => (
-          <Card key={chef.name} elevated className="space-y-2">
-            <p className="font-heading text-2xl text-tableBrown">{chef.name}</p>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{chef.role}</p>
-            <p className="text-sm leading-relaxed text-ink/80">{chef.bio}</p>
+          <Card key={chef.name} elevated className="bg-white dark:bg-[#1a0f08] rounded-xl border border-stone-200 dark:border-white/10 space-y-2">
+            <p className="font-heading text-2xl text-tableBrown dark:text-white/90">{chef.name}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted dark:text-white/60">{chef.role}</p>
+            <p className="text-sm leading-relaxed text-ink/80 dark:text-white/80">{chef.bio}</p>
           </Card>
         ))}
       </div>

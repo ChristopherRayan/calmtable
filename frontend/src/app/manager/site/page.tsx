@@ -12,15 +12,15 @@ export default function ManagerSitePage() {
 
   return (
     <div className="space-y-8">
-      <div className="p-8 rounded-3xl bg-amber-600/10 border border-amber-600/20 max-w-2xl">
-        <h3 className="text-sm font-bold text-amber-500 uppercase tracking-widest mb-2">Notice</h3>
-        <p className="text-sm text-white/70 leading-relaxed">
+      <div className="p-8 rounded-3xl bg-amber-50 dark:bg-amber-600/10 border border-amber-200 dark:border-amber-600/20 max-w-2xl">
+        <h3 className="text-sm font-bold text-amber-700 dark:text-amber-500 uppercase tracking-widest mb-2">Notice</h3>
+        <p className="text-sm text-gray-700 dark:text-white/70 leading-relaxed">
           Site content management is currently handled through our core administrative engine.
           Click the link below to access the operational settings.
         </p>
-        <Link 
-          href="/admin" 
-          className="inline-block mt-6 px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all"
+        <Link
+          href="/admin"
+          className="inline-block mt-6 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-500 text-white text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all"
         >
           Open Operational Admin
         </Link>
@@ -28,14 +28,14 @@ export default function ManagerSitePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
         {sections.map((section) => (
-          <div key={section.title} className="p-6 rounded-2xl bg-[#140d09] border border-white/5 opacity-60 hover:opacity-100 transition-opacity">
+          <div key={section.title} className="p-6 rounded-2xl bg-white dark:bg-[#140d09] border border-gray-200 dark:border-white/5 opacity-60 hover:opacity-100 transition-opacity">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-amber-500">
+              <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-amber-600 dark:text-amber-500">
                 <i className={section.icon}></i>
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">{section.title}</h4>
-                <p className="text-[10px] text-white/40 mt-1">{section.desc}</p>
+                <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">{section.title}</h4>
+                <p className="text-[10px] text-gray-500 dark:text-white/40 mt-1">{section.desc}</p>
               </div>
             </div>
           </div>

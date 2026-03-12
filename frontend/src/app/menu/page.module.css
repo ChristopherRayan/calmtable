@@ -23,12 +23,10 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to right,
-    rgb(var(--cream-rgb) / 0.92) 0%,
-    rgb(var(--cream-rgb) / 0.65) 52%,
-    rgb(var(--cream-rgb) / 0.12) 100%
-  );
+  background: linear-gradient(to right,
+      rgb(var(--cream-rgb) / 0.92) 0%,
+      rgb(var(--cream-rgb) / 0.65) 52%,
+      rgb(var(--cream-rgb) / 0.12) 100%);
 }
 
 .featuredBody {
@@ -86,6 +84,15 @@
   background: rgb(var(--wood-accent-rgb) / 0.1);
 }
 
+[data-theme='dark'] .featuredCta {
+  border-color: rgba(210, 180, 140, 0.35);
+  color: #d2b48c;
+}
+
+[data-theme='dark'] .featuredCta:hover {
+  background: rgba(210, 180, 140, 0.08);
+}
+
 .categoryBar {
   display: flex;
   align-items: center;
@@ -111,6 +118,10 @@
   letter-spacing: 0.17em;
   text-transform: uppercase;
   color: rgb(var(--ink-rgb) / 0.45);
+}
+
+[data-theme='dark'] .categoryButton {
+  color: rgba(244, 233, 219, 0.4);
 }
 
 .categoryButton:hover {
@@ -148,6 +159,15 @@
   overflow: hidden;
 }
 
+[data-theme='dark'] .menuCard {
+  background: #1a0f08;
+  border-color: rgba(210, 180, 140, 0.1);
+}
+
+[data-theme='dark'] .menuCard:hover {
+  border-color: rgba(210, 180, 140, 0.3);
+}
+
 .menuCard:hover {
   border-color: rgb(var(--wood-accent-rgb) / 0.45);
 }
@@ -164,6 +184,10 @@
   z-index: 3;
 }
 
+[data-theme='dark'] .cardCorner {
+  border-top-color: rgba(210, 180, 140, 0.5);
+}
+
 .menuCard:hover .cardCorner {
   opacity: 1;
 }
@@ -172,11 +196,15 @@
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: linear-gradient(
-    135deg,
-    rgb(var(--warm-gray-rgb)) 0%,
-    rgb(var(--table-brown-rgb) / 0.45) 100%
-  );
+  background: linear-gradient(135deg,
+      rgb(var(--warm-gray-rgb)) 0%,
+      rgb(var(--table-brown-rgb) / 0.45) 100%);
+}
+
+[data-theme='dark'] .cardImageWrap {
+  background: linear-gradient(135deg,
+      #1a0f08 0%,
+      rgba(26, 15, 8, 0.6) 100%);
 }
 
 .cardImage {
@@ -213,6 +241,10 @@
 .cardBody {
   border-top: 1px solid rgb(var(--wood-accent-rgb) / 0.18);
   padding: 1rem 1rem 1.1rem;
+}
+
+[data-theme='dark'] .cardBody {
+  border-top-color: rgba(210, 180, 140, 0.12);
 }
 
 .badgeRow {
@@ -339,12 +371,22 @@
   animation: pulse 1.1s ease-in-out infinite alternate;
 }
 
+[data-theme='dark'] .skeletonCard {
+  background: #1a0f08;
+  border-color: rgba(210, 180, 140, 0.1);
+}
+
 .emptyState {
   border: 1px solid rgb(var(--wood-accent-rgb) / 0.2);
   background: rgb(var(--warm-gray-rgb));
   padding: 1.25rem;
   text-align: center;
   color: rgb(var(--muted-rgb));
+}
+
+[data-theme='dark'] .emptyState {
+  background: #1a0f08;
+  border-color: rgba(210, 180, 140, 0.12);
 }
 
 .reviewOverlay {
@@ -363,6 +405,11 @@
   background: rgb(var(--warm-gray-rgb));
   padding: 1.2rem;
   box-shadow: 0 20px 50px rgb(0 0 0 / 0.35);
+}
+
+[data-theme='dark'] .reviewModal {
+  background: #1a0f08;
+  border-color: rgba(210, 180, 140, 0.15);
 }
 
 .reviewHeader {
@@ -460,6 +507,7 @@
   from {
     opacity: 0.55;
   }
+
   to {
     opacity: 0.85;
   }
