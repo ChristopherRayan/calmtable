@@ -160,7 +160,7 @@ export default function HomePage() {
   const resBg = normalizeImageSource(settings.home.reservation_bg_image) || '/images/hero-placeholder.png';
 
   return (
-    <div className="bg-[#0a0604] min-h-screen text-white overflow-hidden selection:bg-amber-600/30">
+    <div className="bg-[#0a0604] min-h-screen text-white overflow-hidden selection:bg-amber-600/30 -mt-14">
       
       {/* ─── Hero Section ────────────────────────────────────────────── */}
       <section className="relative h-[100dvh] flex items-center justify-center overflow-hidden">
@@ -180,7 +180,7 @@ export default function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0a0604] to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#0a0604_100%)] opacity-70" />
 
-        <div className="page-shell relative z-10 flex flex-col items-center justify-center text-center mt-10">
+        <div className="page-shell relative z-10 flex flex-col items-center justify-center text-center">
           <motion.div
             initial="hidden"
             animate="visible"
