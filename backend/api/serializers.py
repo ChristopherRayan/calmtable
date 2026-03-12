@@ -46,10 +46,14 @@ class UserPublicSerializer(serializers.ModelSerializer):
         )
 
     def get_role(self, obj):
+        # Superusers are always admin role
+        if obj.is_superuser:
+            return "admin"
         profile = getattr(obj, "profile", None)
         if profile:
             return profile.role
-        return "admin" if obj.is_staff else "customer"
+        # Default to customer if no profile exists
+        return "customer"
 
     def get_must_change_password(self, obj):
         profile = getattr(obj, "profile", None)

@@ -1,17 +1,11 @@
-// Premium menu gallery page with featured dish, category rail, and cart-ready cards.
+// Premium menu gallery page - display only, no ordering
 'use client';
 
 import Image from 'next/image';
-import { ArrowRight, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { FloatingReservationWidget } from '@/components/floating-reservation-widget';
-import { useAuth } from '@/components/auth-provider';
-import { useCart } from '@/components/cart-provider';
-import { StarRatingInput } from '@/components/star-rating';
-import { createReview, fetchMenuItems } from '@/lib/services';
+import { fetchMenuItems } from '@/lib/services';
 import { formatKwacha } from '@/lib/currency';
 import { normalizeImageSource, shouldSkipImageOptimization } from '@/lib/image';
 import type { MenuItem } from '@/lib/types';
@@ -130,14 +124,7 @@ function buildBadges(item: MenuItem) {
 }
 
 export default function MenuPage() {
-  const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
-  const { addItem } = useCart();
   const [activeCategory, setActiveCategory] = useState<DisplayCategory>('all');
-  const [reviewItem, setReviewItem] = useState<MenuItem | null>(null);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
   const { items, loading: isLoading } = useMenuItems();
 
   const featuredItem = useMemo(() => {
@@ -150,73 +137,6 @@ export default function MenuPage() {
     }
     return items.filter((item) => resolveDisplayCategory(item) === activeCategory);
   }, [activeCategory, items]);
-
-  function handleAddToCart(item: MenuItem) {
-    if (!isAuthenticated) {
-      toast.error('Sign in as a customer to place orders.');
-      router.push('/login?next=/menu');
-      return;
-    }
-
-    if (user?.is_staff) {
-      toast.error('Staff accounts cannot checkout. Use a customer account.');
-      return;
-    }
-
-    if (!item.is_available) {
-      toast.error('This dish is currently unavailable.');
-      return;
-    }
-
-    addItem(item);
-    toast.success(`${item.name} added to order.`);
-  }
-
-  function handleOpenReview(item: MenuItem) {
-    if (!isAuthenticated) {
-      toast.error('Sign in as a customer to leave a review.');
-      router.push('/login?next=/menu');
-      return;
-    }
-
-    if (user?.is_staff) {
-      toast.error('Staff accounts cannot leave menu reviews.');
-      return;
-    }
-
-    setReviewItem(item);
-    setReviewRating(5);
-    setReviewComment('');
-  }
-
-  async function handleSubmitReview() {
-    if (!reviewItem) {
-      return;
-    }
-
-    const trimmedComment = reviewComment.trim();
-    if (trimmedComment.length < 5) {
-      toast.error('Write at least 5 characters for your review.');
-      return;
-    }
-
-    try {
-      setSubmittingReview(true);
-      await createReview({
-        menu_item: reviewItem.id,
-        rating: reviewRating,
-        comment: trimmedComment,
-      });
-      toast.success('Your review has been submitted.');
-      setReviewItem(null);
-      setReviewComment('');
-      setReviewRating(5);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to submit your review.');
-    } finally {
-      setSubmittingReview(false);
-    }
-  }
 
   return (
     <div className={styles.page}>
@@ -241,15 +161,12 @@ export default function MenuPage() {
               )}
             </div>
             <div className={styles.featuredBody}>
-              <p className={styles.featuredEyebrow}>Chef&apos;s Signature</p>
+              <p className={styles.featuredEyebrow}>Chef's Signature</p>
               <p className={styles.featuredName}>
                 {featuredItem.name}
                 <em>{formatKwacha(featuredItem.price)}</em>
               </p>
-              <button type="button" className={styles.featuredCta} onClick={() => handleAddToCart(featuredItem)}>
-                Add Signature Dish
-                <ArrowRight size={14} />
-              </button>
+              <p className={styles.featuredDescription}>{featuredItem.description}</p>
             </div>
           </article>
         </section>
@@ -331,25 +248,6 @@ export default function MenuPage() {
                     <p className={styles.cardSub}>{item.description}</p>
                     <div className={styles.cardFooter}>
                       <span className={styles.cardPrice}>{formatKwacha(item.price)}</span>
-                      <div className={styles.cardActions}>
-                        <button
-                          type="button"
-                          className={styles.cardLink}
-                          onClick={() => handleOpenReview(item)}
-                          aria-label={`Review ${item.name}`}
-                        >
-                          Review
-                        </button>
-                        <button
-                          type="button"
-                          className={cn(styles.cardLink, !item.is_available && styles.cardLinkDisabled)}
-                          onClick={() => handleAddToCart(item)}
-                          aria-label={`Order ${item.name}`}
-                          disabled={!item.is_available}
-                        >
-                          {item.is_available ? 'Order' : 'Unavailable'}
-                        </button>
-                      </div>
                     </div>
                   </div>
                 </article>
@@ -358,78 +256,6 @@ export default function MenuPage() {
           </div>
         )}
       </section>
-
-      {reviewItem && (
-        <div
-          className={styles.reviewOverlay}
-          onClick={() => {
-            if (!submittingReview) {
-              setReviewItem(null);
-            }
-          }}
-        >
-          <div
-            className={styles.reviewModal}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Review ${reviewItem.name}`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={styles.reviewHeader}>
-              <div>
-                <p className={styles.reviewEyebrow}>Review Menu Item</p>
-                <p className={styles.reviewTitle}>{reviewItem.name}</p>
-              </div>
-              <button
-                type="button"
-                className={styles.reviewClose}
-                aria-label="Close review form"
-                onClick={() => {
-                  if (!submittingReview) {
-                    setReviewItem(null);
-                  }
-                }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <label className={styles.reviewLabel}>Your Rating</label>
-            <StarRatingInput value={reviewRating} onChange={setReviewRating} />
-
-            <label htmlFor="menu-review-comment" className={styles.reviewLabel}>
-              Comment
-            </label>
-            <textarea
-              id="menu-review-comment"
-              className={styles.reviewTextarea}
-              value={reviewComment}
-              onChange={(event) => setReviewComment(event.target.value)}
-              placeholder="Share your experience with this dish..."
-              maxLength={600}
-            />
-
-            <div className={styles.reviewActions}>
-              <button
-                type="button"
-                className={styles.reviewSecondary}
-                onClick={() => setReviewItem(null)}
-                disabled={submittingReview}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={styles.reviewPrimary}
-                onClick={() => void handleSubmitReview()}
-                disabled={submittingReview}
-              >
-                {submittingReview ? 'Submitting...' : 'Submit Review'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <footer className="page-shell border-t border-woodAccent/20 py-6">
         <div className="flex flex-col gap-3 text-[11px] uppercase tracking-[0.1em] text-muted md:flex-row md:items-center md:justify-between">
@@ -441,8 +267,6 @@ export default function MenuPage() {
           </div>
         </div>
       </footer>
-
-      <FloatingReservationWidget />
     </div>
   );
 }

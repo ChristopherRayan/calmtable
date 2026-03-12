@@ -80,8 +80,18 @@ class CalmTableAdminSite(AdminSite):
                 self.admin_view(self.resolve_notification),
                 name="resolve_notification",
             ),
+            path(
+                "site-settings/",
+                self.admin_view(self.site_settings_redirect),
+                name="site_settings",
+            ),
         ]
         return custom_urls + urls
+
+    def site_settings_redirect(self, request):
+        """Redirect /admin/site-settings/ to the FrontendSettings change page."""
+        from django.urls import reverse
+        return redirect(reverse("calmtable_admin:api_frontendsettings_change", args=[1]))
 
     def resolve_notification(self, request, pk):
         """Mark a notification as read and redirect to the target detail page."""

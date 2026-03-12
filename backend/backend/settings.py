@@ -237,6 +237,12 @@ JAZZMIN_SETTINGS = {
                 "icon": "fas fa-users-cog",
                 "permissions": ["auth.view_user"],
             },
+            {
+                "name": "Site Settings",
+                "url": "/admin/api/frontendsettings/1/change/",
+                "icon": "fas fa-sliders-h",
+                "permissions": ["api.view_frontendsettings"],
+            },
         ],
     },
 }

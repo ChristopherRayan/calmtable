@@ -1,104 +1,36 @@
-// Responsive top navigation with premium actions, profile controls, and theme toggle.
+// Simplified navigation for restaurant information website
 'use client';
 
 import {
-  Bell,
-  BookOpen,
-  LogOut,
   Menu,
   Moon,
-  Receipt,
-  Phone,
-  ShoppingBag,
   Sun,
-  UserRound,
   X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { formatDistanceToNow } from 'date-fns';
-import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { useAuth } from '@/components/auth-provider';
-import { useCart } from '@/components/cart-provider';
 import { useTheme } from '@/components/theme-provider';
-import { normalizeImageSource, shouldSkipImageOptimization } from '@/lib/image';
-import {
-  fetchNotifications,
-  markNotificationRead,
-  markAllNotificationsRead,
-} from '@/lib/services';
-import type { NotificationItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/menu', label: 'Menu' },
-  { href: '/members', label: 'Members' },
-  { href: '/book', label: 'Book a Table' },
+  { href: '/gallery', label: 'Gallery' },
+  { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];
 
-function initialsFromUserName(name: string) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
-}
-
 export function Navigation() {
   const pathname = usePathname();
-  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
-  const profileWrapRef = useRef<HTMLDivElement | null>(null);
-  const bellWrapRef = useRef<HTMLDivElement | null>(null);
-
-  const { user, loading, isAuthenticated, logout } = useAuth();
-  const { itemCount, setIsOpen } = useCart();
   const { resolvedTheme, toggleTheme } = useTheme();
   const isHome = pathname === '/';
   const isTransparentNav = isHome && !isScrolled;
-
-  const unreadCount = notifications.filter((notification) => !notification.is_read).length;
-  const profileName = useMemo(() => {
-    if (!user) {
-      return '';
-    }
-    const composed = `${user.first_name} ${user.last_name}`.trim();
-    return composed || user.username || user.email;
-  }, [user]);
-  const profileImageSrc = useMemo(
-    () => normalizeImageSource(user?.profile_image_url ?? ''),
-    [user?.profile_image_url]
-  );
-  const profileInitials = initialsFromUserName(profileName || 'CT');
-  const profileAvatarSrc = profileImageSrc || '/images/avatar-placeholder.svg';
-
-  useEffect(() => {
-    function handleOutsideClick(event: MouseEvent) {
-      const targetNode = event.target as Node;
-      if (profileWrapRef.current && !profileWrapRef.current.contains(targetNode)) {
-        setProfileOpen(false);
-      }
-      if (bellWrapRef.current && !bellWrapRef.current.contains(targetNode)) {
-        setNotificationsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, []);
 
   useEffect(() => {
     function handleScroll() {
@@ -116,98 +48,6 @@ export function Navigation() {
     }
     return pathname.startsWith(path);
   }
-
-  function parseNotificationDetail(payload: Record<string, unknown>) {
-    const customerName = typeof payload.customer_name === 'string' ? payload.customer_name : '';
-    const customerEmail = typeof payload.customer_email === 'string' ? payload.customer_email : '';
-    const customerPhone = typeof payload.customer_phone === 'string' ? payload.customer_phone : '';
-    const totalAmount = typeof payload.total_amount === 'string' ? payload.total_amount : '';
-
-    const summary = [customerName, customerEmail, customerPhone].filter(Boolean).join(' | ');
-    const total = totalAmount ? `MK ${Number(totalAmount).toLocaleString()}` : '';
-    return [summary, total].filter(Boolean).join(' | ');
-  }
-
-  const loadNotifications = useCallback(async () => {
-    if (!isAuthenticated || !user?.is_staff) {
-      setNotifications([]);
-      return;
-    }
-    try {
-      setLoadingNotifications(true);
-      const data = await fetchNotifications();
-      setNotifications(data);
-    } catch (_error) {
-      setNotifications([]);
-    } finally {
-      setLoadingNotifications(false);
-    }
-  }, [isAuthenticated, user?.is_staff]);
-
-  async function markNotificationsRead() {
-    if (!isAuthenticated) {
-      return;
-    }
-    try {
-      await markAllNotificationsRead();
-      setNotifications((current) => current.map((notification) => ({ ...notification, is_read: true })));
-    } catch (_error) {
-      // No toast: this runs on panel open and should stay silent on transient network issues.
-    }
-  }
-
-  async function clearNotifications() {
-    if (!isAuthenticated) {
-      return;
-    }
-    try {
-      await markAllNotificationsRead();
-      setNotifications((current) => current.map((notification) => ({ ...notification, is_read: true })));
-    } catch (_error) {
-      toast.error('Unable to clear notifications right now.');
-    }
-  }
-
-  function handleOpenCart() {
-    if (!isAuthenticated) {
-      toast.error('Sign in as a customer to use cart and checkout.');
-      router.push('/login?next=/menu');
-      return;
-    }
-
-    if (user?.is_staff) {
-      toast.error('Staff accounts cannot checkout. Use a customer account.');
-      return;
-    }
-
-    setIsOpen(true);
-  }
-
-  async function handleLogout() {
-    try {
-      await logout();
-      setProfileOpen(false);
-      setMobileOpen(false);
-      toast.success('Signed out successfully.');
-      router.push('/');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to sign out.');
-    }
-  }
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setNotifications([]);
-      return;
-    }
-
-    void loadNotifications();
-    const timer = window.setInterval(() => {
-      void loadNotifications();
-    }, 20000);
-
-    return () => window.clearInterval(timer);
-  }, [isAuthenticated, loadNotifications]);
 
   return (
     <header
@@ -250,101 +90,6 @@ export function Navigation() {
         </ul>
 
         <div className="hidden items-center gap-1 md:flex">
-          {isAuthenticated && (
-            <div ref={bellWrapRef} className="relative">
-              <button
-                type="button"
-                className={cn(
-                  'relative inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-woodAccent/10 dark:hover:bg-gray-700',
-                  isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-300'
-                )}
-                onClick={() => {
-                  setNotificationsOpen((current) => !current);
-                  setProfileOpen(false);
-                  void markNotificationsRead();
-                }}
-                aria-label="Notifications"
-              >
-                <Bell size={18} />
-                {unreadCount > 0 && (
-                  <span className="absolute right-1 top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#E07065] dark:bg-red-900 px-1 text-[9px] font-semibold text-white dark:text-gray-100">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </button>
-              <div
-                className={cn(
-                  'absolute right-0 top-[calc(100%+10px)] w-80 origin-top-right rounded-md border border-woodAccent/20 dark:border-gray-700 bg-warmGray dark:bg-gray-800 shadow-2xl',
-                  notificationsOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-                )}
-              >
-                <div className="flex items-center justify-between border-b border-woodAccent/20 dark:border-gray-700 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink dark:text-gray-300">Notifications</p>
-                  <button
-                    type="button"
-                    className="text-[10px] uppercase tracking-[0.08em] text-muted dark:text-gray-500 hover:text-woodAccent dark:hover:text-gray-300"
-                    onClick={() => void clearNotifications()}
-                  >
-                    Clear all
-                  </button>
-                </div>
-                <div className="max-h-72 overflow-y-auto">
-                  {loadingNotifications ? (
-                    <p className="px-4 py-8 text-center text-xs text-muted dark:text-gray-500">Loading notifications...</p>
-                  ) : notifications.length === 0 ? (
-                    <p className="px-4 py-8 text-center text-xs text-muted dark:text-gray-500">No notifications yet.</p>
-                  ) : (
-                    notifications.map((notification) => (
-                      <button
-                        key={notification.id}
-                        type="button"
-                        className={cn(
-                          'block w-full border-b border-woodAccent/15 dark:border-gray-700 px-4 py-3 text-left last:border-b-0 hover:bg-woodAccent/8 dark:hover:bg-gray-700/50',
-                          !notification.is_read && 'bg-woodAccent/10 dark:bg-gray-700/50'
-                        )}
-                        onClick={() => {
-                          void markNotificationRead(notification.id).then((updated) => {
-                            setNotifications((current) =>
-                              current.map((item) => (item.id === updated.id ? updated : item))
-                            );
-                          });
-                        }}
-                      >
-                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-tableBrown dark:text-gray-300">
-                          {notification.title}
-                        </p>
-                        <p className="mt-1 text-sm text-ink dark:text-gray-300">{notification.message}</p>
-                        <p className="mt-1 text-[11px] text-muted dark:text-gray-500">
-                          {parseNotificationDetail(notification.payload)}
-                        </p>
-                        <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-muted dark:text-gray-500">
-                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                        </p>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <button
-            type="button"
-            className={cn(
-              'relative inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-woodAccent/10 dark:hover:bg-gray-700',
-              isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-300'
-            )}
-            onClick={handleOpenCart}
-            aria-label="Open cart"
-          >
-            <ShoppingBag size={18} />
-            {itemCount > 0 && (
-              <span className="absolute right-1.5 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-tableBrown dark:bg-gray-700 px-1 text-[9px] font-semibold text-white dark:text-gray-100">
-                {itemCount}
-              </span>
-            )}
-          </button>
-
           <button
             type="button"
             className={cn(
@@ -356,103 +101,6 @@ export function Navigation() {
           >
             {resolvedTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-
-          {!loading && !isAuthenticated && (
-            <Link
-              href="/login"
-              className={cn(
-                'ml-2 inline-flex items-center gap-2 rounded-sm border border-woodAccent/35 dark:border-gray-600 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.12em] hover:bg-tableBrown hover:text-white dark:hover:bg-gray-700 dark:hover:text-gray-100',
-                isTransparentNav ? 'text-white' : 'text-woodAccent dark:text-gray-300'
-              )}
-            >
-              <UserRound size={14} />
-              Sign In
-            </Link>
-          )}
-
-          {!loading && isAuthenticated && (
-            <div ref={profileWrapRef} className="relative ml-2">
-              <button
-                type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-woodAccent dark:border-gray-500 bg-tableBrown dark:bg-gray-700 text-xs font-bold tracking-[0.05em] text-white dark:text-gray-100"
-                onClick={() => {
-                  setProfileOpen((current) => !current);
-                  setNotificationsOpen(false);
-                }}
-                aria-label="Account menu"
-              >
-                <span className="relative block h-full w-full overflow-hidden rounded-full">
-                  <Image
-                    src={profileAvatarSrc}
-                    alt={profileImageSrc ? "Profile avatar" : `${profileInitials} avatar`}
-                    fill
-                    className="object-cover"
-                    sizes="40px"
-                    unoptimized={shouldSkipImageOptimization(profileAvatarSrc)}
-                  />
-                </span>
-              </button>
-              <div
-                className={cn(
-                  'absolute right-0 top-[calc(100%+10px)] w-64 origin-top-right rounded-md border border-woodAccent/20 dark:border-gray-700 bg-warmGray dark:bg-gray-800 shadow-2xl',
-                  profileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-                )}
-              >
-                <div className="border-b border-woodAccent/20 dark:border-gray-700 px-4 py-3">
-                  <p className="text-sm font-semibold text-ink dark:text-gray-200">{profileName}</p>
-                  <p className="text-xs text-muted dark:text-gray-500">{user?.email}</p>
-                </div>
-                <div className="py-2">
-                  <Link
-                    href="/profile"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50 hover:text-ink dark:hover:text-gray-200"
-                  >
-                    <UserRound size={15} />
-                    My Profile
-                  </Link>
-                  {!user?.is_staff && (
-                    <Link
-                      href="/my-reservations"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50 hover:text-ink dark:hover:text-gray-200"
-                    >
-                      <BookOpen size={15} />
-                      My Reservations
-                    </Link>
-                  )}
-                  {!user?.is_staff && (
-                    <Link
-                      href="/my-orders"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50 hover:text-ink dark:hover:text-gray-200"
-                    >
-                      <Receipt size={15} />
-                      My Orders
-                    </Link>
-                  )}
-                  {user?.is_staff && (
-                    <Link
-                      href="/admin/"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-ink/80 dark:text-gray-400 hover:bg-woodAccent/10 dark:hover:bg-gray-700/50 hover:text-ink dark:hover:text-gray-200"
-                    >
-                      <BookOpen size={15} />
-                      Admin Panel
-                    </Link>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => void handleLogout()}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#E07065] hover:bg-[#E07065]/10 dark:hover:bg-gray-700/50"
-                  >
-                    <LogOut size={15} />
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         <button
@@ -493,57 +141,18 @@ export function Navigation() {
                   </Link>
                 </li>
               ))}
-              <li className="grid grid-cols-3 gap-2 pt-2">
+              <li className="grid grid-cols-2 gap-2 pt-2">
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 dark:border-gray-600 px-3 py-2 text-woodAccent dark:text-gray-300"
                   onClick={() => {
-                    handleOpenCart();
+                    toggleTheme();
                     setMobileOpen(false);
                   }}
-                  aria-label="Open cart"
-                >
-                  <ShoppingBag size={16} />
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 dark:border-gray-600 px-3 py-2 text-woodAccent dark:text-gray-300"
-                  onClick={toggleTheme}
-                  aria-label="Toggle theme"
                 >
                   {resolvedTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                  <span className="ml-2 text-xs uppercase tracking-[0.1em]">Theme</span>
                 </button>
-                {isAuthenticated ? (
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 dark:border-gray-600 px-3 py-2 text-[#E07065]"
-                    onClick={() => {
-                      void handleLogout();
-                      setMobileOpen(false);
-                    }}
-                    aria-label="Sign out"
-                  >
-                    <LogOut size={16} />
-                  </button>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center justify-center rounded-lg border border-woodAccent/25 dark:border-gray-600 px-3 py-2 text-woodAccent dark:text-gray-300"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <UserRound size={16} />
-                  </Link>
-                )}
-              </li>
-              <li>
-                <Link
-                  href="/book"
-                  onClick={() => setMobileOpen(false)}
-                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-tableBrown dark:bg-gray-700 px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-white dark:text-gray-100"
-                >
-                  <Phone size={14} />
-                  Reserve a Table
-                </Link>
               </li>
             </ul>
           </motion.div>

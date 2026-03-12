@@ -1,10 +1,9 @@
-// Premium homepage experience for The CalmTable with hero, story, dishes, and booking CTA.
+// Premium homepage for The CalmTable - Restaurant Information Website
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
@@ -64,17 +63,8 @@ const staggerContainer = {
 };
 
 export default function HomePage() {
-  const router = useRouter();
   const [bestOrderedItems, setBestOrderedItems] = useState<MenuItem[]>([]);
   const [settings, setSettings] = useState<FrontendContentPayload>(defaultFrontendSettings);
-  const [resForm, setResForm] = useState({
-    name: '',
-    phone: '',
-    date: '',
-    time: '',
-    guests: '',
-  });
-  const [booking, setBooking] = useState(false);
 
   // Parallax effect for hero background
   const { scrollY } = useScroll();
@@ -97,7 +87,6 @@ export default function HomePage() {
 
   useEffect(() => {
     let active = true;
-
     async function loadBestOrderedItems() {
       try {
         const data = await fetchBestOrderedMenuItems();
@@ -136,24 +125,6 @@ export default function HomePage() {
       active = false;
     };
   }, []);
-
-  function onReservationSubmit() {
-    if (!resForm.name || !resForm.phone || !resForm.date || !resForm.time || !resForm.guests) {
-      toast.error('Please fill in all reservation fields.');
-      return;
-    }
-
-    setBooking(true);
-    setTimeout(() => {
-      setBooking(false);
-      toast.success('Reservation details captured. Complete your booking in the next step.');
-      const params = new URLSearchParams({
-        date: resForm.date,
-        party_size: resForm.guests,
-      });
-      router.push(`/book?${params.toString()}`);
-    }, 900);
-  }
 
   const heroBg = normalizeImageSource(settings.home.hero_bg_image) || '/images/hero-placeholder.png';
   const aboutImage = normalizeImageSource(settings.home.about_image) || '/images/hero-placeholder.png';
@@ -198,20 +169,12 @@ export default function HomePage() {
               <br className="max-sm:hidden" />
               {settings.home.hero_title_suffix}
             </motion.h1>
+
             <motion.p variants={fadeInUp} className="mt-8 mx-auto max-w-2xl text-sm text-ink dark:text-white/70 sm:text-base leading-relaxed font-light">
               {settings.home.hero_description}
             </motion.p>
 
             <motion.div variants={fadeInUp} className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-5">
-              <Link
-                href="/book"
-                className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-amber-600 px-8 py-4 font-bold uppercase tracking-[0.15em] text-[10px] text-white dark:text-white transition-all hover:bg-amber-500 hover:shadow-xl hover:shadow-amber-900/40 w-full sm:w-auto"
-              >
-                <span className="relative z-10">Reserve a Table</span>
-                <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
-                  <div className="relative h-full w-8 bg-white/20" />
-                </div>
-              </Link>
               <Link
                 href="/menu"
                 className="inline-flex items-center justify-center rounded-full border border-white/30 dark:border-white/30 bg-white/5 backdrop-blur-sm px-8 py-4 font-bold uppercase tracking-[0.15em] text-[10px] text-ink dark:text-white transition-all hover:bg-white/10 w-full sm:w-auto dark:hover:border-white/40"
@@ -273,7 +236,7 @@ export default function HomePage() {
               <motion.div variants={fadeInUp} className="w-16 h-[1px] bg-gradient-to-r from-amber-500 to-transparent mb-8" />
 
               <motion.blockquote variants={fadeInUp} className="text-xl sm:text-2xl font-light italic text-ink dark:text-white/90 leading-relaxed mb-8 border-l-2 border-amber-500/40 pl-6">
-                &quot;{settings.home.story_quote}&quot;
+                "{settings.home.story_quote}"
               </motion.blockquote>
 
               <motion.p variants={fadeInUp} className="text-ink dark:text-white/60 leading-relaxed mb-10 text-sm sm:text-base">
@@ -352,13 +315,6 @@ export default function HomePage() {
                     <p className="text-amber-600 dark:text-amber-400 font-heading font-bold text-lg">
                       {formatKwacha(dish.price)}
                     </p>
-                    <Link
-                      href="/menu"
-                      className="h-8 w-8 rounded-full bg-stone-200 dark:bg-white/5 flex items-center justify-center text-ink group-hover:bg-amber-600 group-hover:text-ink transition-colors"
-                      aria-label={`Order ${dish.name}`}
-                    >
-                      +
-                    </Link>
                   </div>
                 </div>
               </motion.article>
@@ -367,12 +323,58 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── Reservation Banner ────────────────────────────────────────────── */}
+      {/* ─── Gallery Preview ────────────────────────────────────────────── */}
+      <section className="py-24 sm:py-32 relative">
+        <div className="page-shell">
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}
+            className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16"
+          >
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">
+                Our Space
+              </p>
+              <h2 className="font-heading text-4xl sm:text-5xl font-bold">
+                Experience <em className="text-amber-400">CalmTable</em>
+              </h2>
+            </div>
+            <Link
+              href="/gallery"
+              className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-ink dark:text-white hover:text-amber-400 transition-colors"
+            >
+              View Full Gallery
+              <span className="transition-transform group-hover:translate-x-1">→</span>
+            </Link>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {['/images/gallery-1.png', '/images/gallery-2.png', '/images/gallery-3.png', '/images/reservation-bg.png'].map((src, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="relative aspect-square overflow-hidden rounded-2xl"
+              >
+                <Image
+                  src={src}
+                  alt={`Gallery image ${i + 1}`}
+                  fill
+                  className="object-cover transition-transform duration-500 hover:scale-110"
+                />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Contact & Hours Section ────────────────────────────────────────────── */}
       <section className="relative py-24 my-24 page-shell rounded-3xl overflow-hidden shadow-xl shadow-amber-900/10 dark:shadow-[#000000]">
         <div className="absolute inset-0">
           <Image
             src={resBg}
-            alt="Reserve a table"
+            alt="Visit us"
             fill
             className="object-cover"
             unoptimized={shouldSkipImageOptimization(resBg)}
@@ -383,16 +385,17 @@ export default function HomePage() {
         <div className="relative z-10 grid lg:grid-cols-2 gap-16 lg:gap-8 items-center p-8 sm:p-16">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} className="max-w-xl">
             <motion.p variants={fadeInUp} className="text-xs font-bold uppercase tracking-[0.2em] text-amber-500 mb-4">
-              Secure Your Spot
+              Visit Us
             </motion.p>
             <motion.h2 variants={fadeInUp} className="font-heading text-4xl sm:text-5xl font-bold leading-tight mb-6">
-              {settings.home.reservation_banner_title} <em className="text-amber-400">{settings.home.reservation_banner_emphasis}</em>
+              We Look Forward to <em className="text-amber-400">Serving You</em>
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-ink dark:text-white/70 leading-relaxed mb-10">
-              {settings.home.reservation_banner_description}
+              Come experience our warm ambiance and delicious cuisine.
+              Whether it's a casual lunch or a special celebration, we're here to make your visit memorable.
             </motion.p>
 
-            <motion.div variants={fadeInUp} className="flex gap-10">
+            <motion.div variants={fadeInUp} className="flex flex-wrap gap-10">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink dark:text-white/40 mb-2">Call Us</p>
                 <p className="text-lg font-bold">{settings.contact.phone}</p>
@@ -401,68 +404,39 @@ export default function HomePage() {
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink dark:text-white/40 mb-2">WhatsApp</p>
                 <p className="text-lg font-bold">{settings.contact.whatsapp}</p>
               </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink dark:text-white/40 mb-2">Email</p>
+                <p className="text-lg font-bold">{settings.contact.email}</p>
+              </div>
             </motion.div>
           </motion.div>
 
-          {/* Glass Form */}
+          {/* Hours & Location Info */}
           <motion.div
             initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}
             className="relative rounded-3xl border border-stone-200 dark:border-white/10 bg-white/80 dark:bg-[#2a1810]/40 p-8 sm:p-10 backdrop-blur-xl shadow-xl"
           >
-            <h3 className="font-heading text-2xl font-bold mb-8 text-ink dark:text-white">Quick Reservation</h3>
+            <h3 className="font-heading text-2xl font-bold mb-8 text-ink dark:text-white">Opening Hours</h3>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text" placeholder="Your Name" value={resForm.name}
-                  onChange={(e) => setResForm({ ...resForm, name: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none"
-                />
-                <input
-                  type="tel" placeholder="Phone" value={resForm.phone}
-                  onChange={(e) => setResForm({ ...resForm, phone: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none"
-                />
+              <div className="flex justify-between items-center py-2 border-b border-stone-200 dark:border-white/10">
+                <span className="text-ink dark:text-white/70">Monday - Thursday</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400">8:00 AM - 10:00 PM</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="date" min={new Date().toISOString().split('T')[0]} value={resForm.date}
-                  onChange={(e) => setResForm({ ...resForm, date: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none [color-scheme:dark]"
-                />
-                <select
-                  value={resForm.time}
-                  onChange={(e) => setResForm({ ...resForm, time: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none appearance-none"
-                >
-                  <option value="" disabled hidden>Time</option>
-                  <option value="17:00">05:00 PM</option>
-                  <option value="18:00">06:00 PM</option>
-                  <option value="19:00">07:00 PM</option>
-                  <option value="20:00">08:00 PM</option>
-                </select>
+              <div className="flex justify-between items-center py-2 border-b border-stone-200 dark:border-white/10">
+                <span className="text-ink dark:text-white/70">Friday - Saturday</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400">8:00 AM - 11:00 PM</span>
               </div>
-              <select
-                value={resForm.guests}
-                onChange={(e) => setResForm({ ...resForm, guests: e.target.value })}
-                className="w-full rounded-xl border border-white/10 dark:border-white/10 bg-white/40 dark:bg-[#1a0f08]/60 px-4 py-3.5 text-sm text-ink dark:text-white placeholder-stone-400 dark:placeholder-white/40 focus:border-amber-500/50 focus:outline-none appearance-none"
-              >
-                <option value="" disabled hidden>Party Size</option>
-                <option value="1">1 Guest</option>
-                <option value="2">2 Guests</option>
-                <option value="4">3-4 Guests</option>
-                <option value="6">5-6 Guests</option>
-                <option value="10">7-10 Guests</option>
-              </select>
+              <div className="flex justify-between items-center py-2 border-b border-stone-200 dark:border-white/10">
+                <span className="text-ink dark:text-white/70">Sunday</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400">9:00 AM - 9:00 PM</span>
+              </div>
+            </div>
 
-              <button
-                type="button"
-                onClick={onReservationSubmit}
-                disabled={booking}
-                className="mt-4 w-full rounded-xl bg-amber-600 py-4 text-xs font-bold uppercase tracking-[0.15em] text-ink dark:text-white transition-colors hover:bg-amber-500 disabled:opacity-70"
-              >
-                {booking ? 'Confirming...' : 'Confirm Reservation'}
-              </button>
+            <div className="mt-8 pt-6 border-t border-stone-200 dark:border-white/10">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-4">Location</p>
+              <p className="text-ink dark:text-white/70">{settings.contact.address_line_1}</p>
+              <p className="text-ink dark:text-white/70">{settings.contact.address_line_2}</p>
             </div>
           </motion.div>
         </div>
@@ -481,7 +455,9 @@ export default function HomePage() {
               <div className="flex flex-col gap-4 text-sm text-ink dark:text-white/60">
                 <Link href="/" className="hover:text-amber-400 transition-colors w-fit">Home</Link>
                 <Link href="/menu" className="hover:text-amber-400 transition-colors w-fit">Menu</Link>
-                <Link href="/book" className="hover:text-amber-400 transition-colors w-fit">Reservations</Link>
+                <Link href="/gallery" className="hover:text-amber-400 transition-colors w-fit">Gallery</Link>
+                <Link href="/about" className="hover:text-amber-400 transition-colors w-fit">About</Link>
+                <Link href="/contact" className="hover:text-amber-400 transition-colors w-fit">Contact</Link>
               </div>
             </div>
             <div>
