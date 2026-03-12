@@ -1,7 +1,7 @@
 // Next.js middleware enforcing auth token presence on protected routes.
 import { NextResponse, type NextRequest } from 'next/server';
 
-const protectedPrefixes = ['/book', '/my-reservations', '/my-orders', '/profile'];
+const protectedPrefixes = ['/book', '/my-reservations', '/my-orders', '/profile', '/manager'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -21,5 +21,15 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/book', '/book/:path*', '/my-reservations', '/my-reservations/:path*', '/my-orders', '/my-orders/:path*', '/profile', '/profile/:path*'],
+  matcher: [
+    '/book',
+    '/book/:path*',
+    '/my-reservations',
+    '/my-reservations/:path*',
+    '/my-orders',
+    '/my-orders/:path*',
+    '/profile',
+    '/profile/:path*',
+    '/manager/:path*',
+  ],
 };

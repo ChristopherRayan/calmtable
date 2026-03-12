@@ -4,54 +4,51 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { z } from 'zod';
 
 import styles from './page.module.css';
 import { defaultFrontendSettings } from '@/lib/frontend-settings';
 import { fetchFrontendSettings } from '@/lib/services';
 import type { FrontendContentPayload } from '@/lib/types';
 
-interface ContactFormState {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  subject: string;
-  message: string;
-}
+const contactSchema = z.object({
+  firstName: z.string().trim().min(1, 'First name is required.').max(100, 'First name is too long.'),
+  lastName: z.string().trim().min(1, 'Last name is required.').max(100, 'Last name is too long.'),
+  email: z.string().trim().min(1, 'Email is required.').email('Please enter a valid email address.'),
+  phone: z.string().trim().min(7, 'Please enter a valid phone number.').max(30, 'Phone number is too long.'),
+  subject: z.string().trim().min(1, 'Subject is required.').max(200, 'Subject is too long.'),
+  message: z.string().trim().min(10, 'Message must be at least 10 characters.').max(2000, 'Message must be 2000 characters or less.'),
+});
 
-const initialForm: ContactFormState = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  subject: '',
-  message: '',
-};
+type ContactForm = z.infer<typeof contactSchema>;
 
 export default function ContactPage() {
   const [settings, setSettings] = useState<FrontendContentPayload>(defaultFrontendSettings);
-  const [form, setForm] = useState<ContactFormState>(initialForm);
+  const [form, setForm] = useState<ContactForm>(contactSchema.parse({}));
+  const [errors, setErrors] = useState<Partial<Record<keyof ContactForm, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const isValid = useMemo(() => {
-    return (
-      form.firstName.trim() &&
-      form.lastName.trim() &&
-      form.email.trim() &&
-      form.phone.trim() &&
-      form.subject.trim() &&
-      form.message.trim()
-    );
-  }, [form]);
-
-  function updateField<K extends keyof ContactFormState>(key: K, value: ContactFormState[K]) {
+  function updateField<K extends keyof ContactForm>(key: K, value: ContactForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+    // Clear error when user starts typing
+    if (errors[key]) {
+      setErrors((current) => ({ ...current, [key]: undefined }));
+    }
   }
 
   function handleSubmit() {
-    if (!isValid) {
-      toast.error('Please fill in all required fields.');
+    const validated = contactSchema.safeParse(form);
+    if (!validated.success) {
+      const fieldErrors: Partial<Record<keyof ContactForm, string>> = {};
+      validated.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof ContactForm;
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast.error('Please fix the form errors.');
       return;
     }
 
@@ -60,7 +57,7 @@ export default function ContactPage() {
       setSubmitting(false);
       setSent(true);
       toast.success('Message sent successfully.');
-      setForm(initialForm);
+      setForm(contactSchema.parse({}));
     }, 900);
   }
 

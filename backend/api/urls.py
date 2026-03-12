@@ -11,6 +11,7 @@ from .views import (
     AnalyticsRevenueAPIView,
     AvailableSlotsAPIView,
     AvailableTablesAPIView,
+    ChangePasswordAPIView,
     FrontendSettingsAPIView,
     LoginAPIView,
     LogoutAPIView,
@@ -23,6 +24,9 @@ from .views import (
     RegisterAPIView,
     ReservationViewSet,
     ReviewViewSet,
+    StaffUserViewSet,
+    StaffMemberViewSet,
+    TableViewSet,
 )
 
 router = DefaultRouter(trailing_slash=True)
@@ -31,6 +35,9 @@ router.register("reservations", ReservationViewSet, basename="reservation")
 router.register("reviews", ReviewViewSet, basename="review")
 router.register("orders", OrderViewSet, basename="order")
 router.register("notifications", AdminNotificationViewSet, basename="admin-notification")
+router.register("staff/users", StaffUserViewSet, basename="staff-users")
+router.register("staff/members", StaffMemberViewSet, basename="staff-members")
+router.register("tables", TableViewSet, basename="tables")
 
 urlpatterns = [
     path("", include(router.urls)),
@@ -45,6 +52,7 @@ urlpatterns = [
     re_path(r"^auth/logout/?$", LogoutAPIView.as_view(), name="auth-logout"),
     re_path(r"^auth/refresh/?$", TokenRefreshView.as_view(), name="auth-refresh"),
     re_path(r"^auth/me/?$", MeAPIView.as_view(), name="auth-me"),
+    re_path(r"^auth/change-password/?$", ChangePasswordAPIView.as_view(), name="auth-change-password"),
     re_path(r"^my-reservations/?$", MyReservationsAPIView.as_view(), name="my-reservations"),
     re_path(r"^analytics/?$", AnalyticsAPIView.as_view(), name="analytics"),
     re_path(r"^analytics/orders-per-day/?$", AnalyticsOrdersPerDayAPIView.as_view(), name="analytics-orders-per-day"),

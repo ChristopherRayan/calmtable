@@ -111,39 +111,6 @@ export default function MembersPage() {
         </div>
       </div>
 
-      {/* ─── Benefits ─────────────────────────────────────── */}
-      <section className="page-shell py-16">
-        <SectionHeading
-          eyebrow="Member Benefits"
-          title="Why Join Our Circle"
-          description="Exclusive privileges crafted for those who appreciate dining at its finest."
-        />
-
-        <div className="mt-10 grid gap-5 sm:grid-cols-2">
-          {membersContent.benefits.map((benefit, i) => {
-            const Icon = benefitIcons[i % benefitIcons.length];
-            return (
-              <div
-                key={benefit.title}
-                className="group relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-br from-[#2a1810]/60 to-[#1a0f08]/40 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-900/20"
-              >
-                {/* shimmer */}
-                <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-400 ring-1 ring-amber-500/25">
-                    <Icon size={20} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-400">{benefit.title}</p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-white/65">{benefit.description}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* ─── Staff Team ───────────────────────────────────── */}
       <section className="bg-gradient-to-b from-[#16100a]/50 to-transparent py-16">
         <div className="page-shell">
@@ -238,6 +205,39 @@ export default function MembersPage() {
               })}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ─── Benefits ─────────────────────────────────────── */}
+      <section className="page-shell py-16">
+        <SectionHeading
+          eyebrow="Member Benefits"
+          title="Why Join Our Circle"
+          description="Exclusive privileges crafted for those who appreciate dining at its finest."
+        />
+
+        <div className="mt-10 grid gap-5 sm:grid-cols-2">
+          {membersContent.benefits.map((benefit, i) => {
+            const Icon = benefitIcons[i % benefitIcons.length];
+            return (
+              <div
+                key={benefit.title}
+                className="group relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-br from-[#2a1810]/60 to-[#1a0f08]/40 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-900/20"
+              >
+                {/* shimmer */}
+                <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-400 ring-1 ring-amber-500/25">
+                    <Icon size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-400">{benefit.title}</p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-white/65">{benefit.description}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 

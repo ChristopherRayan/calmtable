@@ -35,6 +35,7 @@ from .models import (
     Reservation,
     Review,
     StaffMember,
+    UserProfile,
 )
 from .serializers import (
     AdminNotificationSerializer,
@@ -45,6 +46,8 @@ from .serializers import (
     OrderSerializer,
     ReservationSerializer,
     ReviewSerializer,
+    StaffMemberSerializer,
+    TableSerializer,
     UserProfileUpdateSerializer,
     UserPublicSerializer,
     UserRegisterSerializer,
@@ -125,6 +128,30 @@ def create_admin_order_notifications(order: Order):
         AdminNotification.objects.bulk_create(notifications)
 
 
+def create_admin_reservation_notifications(reservation: Reservation):
+    """Create notifications for staff when a new reservation is made."""
+    admins = User.objects.filter(is_staff=True, is_active=True).only("id")
+    message = (
+        f"New reservation from {reservation.name} for {reservation.party_size} guests "
+        f"on {reservation.date} at {reservation.time_slot}. "
+        f"Confirmation: {reservation.confirmation_code}."
+    )
+
+    notifications = [
+        AdminNotification(
+            recipient=admin_user,
+            reservation=reservation,
+            title="New Table Reservation",
+            message=message,
+            notif_type=AdminNotification.Type.RESERVATION,
+            link_url=f"/reservation/{reservation.confirmation_code}",
+        )
+        for admin_user in admins
+    ]
+    if notifications:
+        AdminNotification.objects.bulk_create(notifications)
+
+
 class IsOwnerOrStaff(permissions.BasePermission):
     """Object-level permission allowing owners or staff members."""
 
@@ -139,6 +166,17 @@ class IsCustomer(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated and not request.user.is_staff)
+
+
+class IsChef(permissions.BasePermission):
+    """Permission for users with the chef role."""
+
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and (request.user.is_staff or getattr(request.user, "profile", None) and request.user.profile.role == "chef")
+        )
 
 
 class RegisterAPIView(APIView):
@@ -348,6 +386,10 @@ class ReservationViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, vie
         code = self.kwargs.get(self.lookup_field, "").upper()
         return get_object_or_404(queryset, **{self.lookup_field: code})
 
+    def perform_create(self, serializer):
+        reservation = serializer.save()
+        create_admin_reservation_notifications(reservation)
+
 
 class ReviewViewSet(
     mixins.ListModelMixin,
@@ -378,7 +420,7 @@ class ReviewViewSet(
 
 @method_decorator(cache_page(20), name="get")
 class AvailableSlotsAPIView(APIView):
-    """Return available reservation slots for a given date."""
+    """Return open hours range for reservations (instead of predefined slots)."""
 
     authentication_classes = []
 
@@ -396,45 +438,18 @@ class AvailableSlotsAPIView(APIView):
             return Response(
                 {
                     "date": target_date.isoformat(),
-                    "available_slots": [],
-                    "full_slots": [],
-                    "max_reservations_per_slot": settings.MAX_RESERVATIONS_PER_SLOT,
+                    "open_hour": settings.RESERVATION_OPEN_HOUR,
+                    "close_hour": settings.RESERVATION_CLOSE_HOUR,
+                    "is_past": True,
                 }
             )
-
-        active_statuses = [Reservation.Status.PENDING, Reservation.Status.CONFIRMED]
-
-        slot_counts = {
-            slot: 0 for slot in settings.RESERVATION_TIME_SLOTS
-        }
-        reservations = Reservation.objects.filter(
-            date=target_date,
-            status__in=active_statuses,
-        )
-        for reservation in reservations:
-            slot_label = reservation.time_slot.strftime("%H:%M")
-            if slot_label in slot_counts:
-                slot_counts[slot_label] += 1
-
-        available_slots = []
-        full_slots = []
-        for slot in settings.RESERVATION_TIME_SLOTS:
-            slot_time = datetime.strptime(slot, "%H:%M").time()
-
-            if target_date == now_local.date() and slot_time <= now_local.time().replace(second=0, microsecond=0):
-                continue
-
-            if slot_counts.get(slot, 0) >= settings.MAX_RESERVATIONS_PER_SLOT:
-                full_slots.append(slot)
-            else:
-                available_slots.append(slot)
 
         return Response(
             {
                 "date": target_date.isoformat(),
-                "available_slots": available_slots,
-                "full_slots": full_slots,
-                "max_reservations_per_slot": settings.MAX_RESERVATIONS_PER_SLOT,
+                "open_hour": settings.RESERVATION_OPEN_HOUR,
+                "close_hour": settings.RESERVATION_CLOSE_HOUR,
+                "is_past": target_date < now_local.date(),
             }
         )
 
@@ -507,6 +522,18 @@ class AvailableTablesAPIView(APIView):
         )
 
 
+class IsManager(permissions.BasePermission):
+    """Permission allowing only users with 'manager' role in their profile."""
+
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.user.is_superuser:
+            return True
+        profile = getattr(request.user, "profile", None)
+        return profile and profile.role == "manager"
+
+
 class OrderViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -524,8 +551,14 @@ class OrderViewSet(
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
+        # Staff users see all orders
         if self.request.user.is_staff:
             return self.queryset
+        # Managers see all orders
+        profile = getattr(self.request.user, 'profile', None)
+        if profile and profile.role == 'manager':
+            return self.queryset
+        # Regular users see only their own orders
         return self.queryset.filter(customer=self.request.user)
 
     def create(self, request, *args, **kwargs):
@@ -557,6 +590,43 @@ class OrderViewSet(
     def my_orders(self, request):
         serializer = self.get_serializer(self.get_queryset().filter(customer=request.user), many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["post"], url_path="assign", permission_classes=[permissions.IsAuthenticated, IsManager])
+    def assign(self, request, pk=None):
+        """Assign an order to a chef and set status to ASSIGNED."""
+        order = self.get_object()
+        
+        # Validate order is in a valid state for assignment
+        if order.status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
+            return Response(
+                {"detail": "Cannot assign completed or cancelled orders."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        chef_id = request.data.get("chef_id")
+        if not chef_id:
+            return Response({"detail": "chef_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate chef exists and has chef role
+        try:
+            chef = User.objects.select_related("profile").get(pk=chef_id, profile__role="chef", is_active=True)
+        except User.DoesNotExist:
+            return Response({"detail": "Invalid or inactive chef."}, status=status.HTTP_400_BAD_REQUEST)
+
+        order.assigned_chef = chef
+        order.status = Order.Status.ASSIGNED
+        order.save(update_fields=["assigned_chef", "status", "updated_at"])
+
+        # Notify the chef
+        AdminNotification.objects.create(
+            recipient=chef,
+            order=order,
+            title="Order Assigned",
+            message=f"You have been assigned order #{order.order_number}.",
+            notif_type=AdminNotification.Type.STATUS_UPDATE,
+        )
+
+        return Response(OrderSerializer(order).data)
 
 
 class OrderReceiptAPIView(APIView):
@@ -625,6 +695,87 @@ class AdminNotificationViewSet(
         return Response({"count": count})
 
 
+class StaffUserViewSet(viewsets.ReadOnlyModelViewSet):
+    """Endpoints for Managers to view and manage restaurant staff."""
+
+    serializer_class = UserPublicSerializer
+    permission_classes = [IsManager]
+
+    def get_queryset(self):
+        return User.objects.filter(is_staff=True).exclude(is_superuser=True).select_related("profile")
+
+    @action(detail=True, methods=["post"], url_path="toggle-active")
+    def toggle_active(self, request, pk=None):
+        user = self.get_object()
+        # Prevent self-deactivation to avoid locking out admin access
+        if user.id == request.user.id:
+            return Response(
+                {"detail": "Cannot deactivate your own account."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        user.is_active = not user.is_active
+        user.save(update_fields=["is_active"])
+        return Response({"id": user.id, "is_active": user.is_active})
+
+    @action(detail=False, methods=["get"], url_path="chefs")
+    def list_chefs(self):
+        chefs = User.objects.filter(profile__role="chef", is_active=True).select_related("profile")
+        serializer = self.get_serializer(chefs, many=True)
+        return Response(serializer.data)
+
+
+class ChangePasswordAPIView(APIView):
+    """Allow users to change their password, clearing the 'must_change' flag."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    # Common passwords to block
+    COMMON_PASSWORDS = {
+        "password", "12345678", "123456789", "password123", "admin123",
+        "welcome", "qwerty", "abc123", "letmein", "monkey", "dragon",
+    }
+
+    def validate_password_strength(self, password: str) -> tuple[bool, str]:
+        """Validate password meets strength requirements."""
+        if password.lower() in self.COMMON_PASSWORDS:
+            return False, "This password is too common. Please choose a stronger password."
+        
+        if len(password) < 8:
+            return False, "Password must be at least 8 characters."
+        
+        has_upper = any(c.isupper() for c in password)
+        has_lower = any(c.islower() for c in password)
+        has_digit = any(c.isdigit() for c in password)
+        has_special = any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password)
+        
+        strength_score = sum([has_upper, has_lower, has_digit, has_special])
+        
+        if strength_score < 3:
+            return False, "Password must contain at least 3 of: uppercase, lowercase, numbers, special characters."
+        
+        return True, ""
+
+    def post(self, request):
+        new_password = request.data.get("password")
+        if not new_password:
+            return Response({"detail": "Password is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        is_valid, error_message = self.validate_password_strength(new_password)
+        if not is_valid:
+            return Response({"detail": error_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        user.set_password(new_password)
+        user.save()
+
+        # Update profile flag
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.must_change_password = False
+        profile.save(update_fields=["must_change_password"])
+
+        return Response({"detail": "Password updated successfully."})
+
+
 class PublicMembersAPIView(APIView):
     """Public listing of staff members displayed on the website."""
 
@@ -644,6 +795,30 @@ class PublicMembersAPIView(APIView):
             for member in members
         ]
         return Response({"members": payload})
+
+
+class TableViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """API endpoints for managers to manage restaurant tables."""
+
+    serializer_class = TableSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    def get_queryset(self):
+        return Table.objects.all().order_by('table_number')
+
+    def destroy(self, request, *args, **kwargs):
+        table = self.get_object()
+        # Check if table has active reservations
+        active_reservations = Reservation.objects.filter(
+            table=table,
+            status__in=[Reservation.Status.PENDING, Reservation.Status.CONFIRMED]
+        )
+        if active_reservations.exists():
+            return Response(
+                {"detail": "Cannot delete table with active reservations."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().destroy(request, *args, **kwargs)
 
 
 class AnalyticsAPIView(APIView):
@@ -746,3 +921,14 @@ class AnalyticsRevenueAPIView(APIView):
                 "values": [float(row["total"] or 0) for row in qs],
             }
         )
+
+
+class StaffMemberViewSet(viewsets.ModelViewSet):
+    """CRUD viewset for public staff member profiles managed by Managers."""
+
+    queryset = StaffMember.objects.all()
+    serializer_class = StaffMemberSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    def get_queryset(self):
+        return StaffMember.objects.all().order_by("role", "full_name")

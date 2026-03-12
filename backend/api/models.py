@@ -149,6 +149,17 @@ class MenuItem(models.Model):
 class UserProfile(models.Model):
     """Extended profile metadata for customer and staff users."""
 
+    class Role(models.TextChoices):
+        MANAGER = "manager", "Manager"
+        CHEF = "chef", "Chef"
+        WAITER = "waiter", "Waiter / Waitress"
+        CASHIER = "cashier", "Cashier"
+        CLEANER = "cleaner", "Cleaning Staff"
+        SECURITY = "security", "Security"
+        DELIVERY = "delivery", "Delivery"
+        OTHER = "other", "Other"
+        CUSTOMER = "customer", "Customer"
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -156,6 +167,8 @@ class UserProfile(models.Model):
     )
     phone = models.CharField(max_length=30, blank=True)
     profile_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.CUSTOMER)
+    must_change_password = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -341,6 +354,14 @@ class Reservation(models.Model):
             if self.date == now_local.date() and self.time_slot <= now_local.time().replace(second=0, microsecond=0):
                 raise ValidationError({"time_slot": "Reservations cannot be made for past time slots."})
 
+            # Validate time is within open hours
+            open_hour = getattr(settings, 'RESERVATION_OPEN_HOUR', 17)
+            close_hour = getattr(settings, 'RESERVATION_CLOSE_HOUR', 21)
+            if self.time_slot.hour < open_hour or self.time_slot.hour >= close_hour:
+                raise ValidationError(
+                    {"time_slot": f"Reservations are only available between {open_hour}:00 and {close_hour}:00."}
+                )
+
             # Check if selected table is available for the requested time slot and duration
             if self.table and not self.table.is_available_for_slot(self.date, self.time_slot, self.party_duration_hours):
                 raise ValidationError(
@@ -407,6 +428,7 @@ class Order(models.Model):
 
         PENDING = "pending", "Pending"
         CONFIRMED = "confirmed", "Confirmed"
+        ASSIGNED = "assigned", "Assigned to Chef"
         PREPARING = "preparing", "Preparing"
         READY = "ready", "Ready"
         COMPLETED = "completed", "Completed"
@@ -426,6 +448,13 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     notes = models.TextField(blank=True)
     stripe_payment_intent_id = models.CharField(max_length=120, blank=True)  # legacy optional payment id
+    assigned_chef = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_orders",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -468,6 +497,7 @@ class AdminNotification(models.Model):
     class Type(models.TextChoices):
         NEW_ORDER = "new_order", "New Order"
         STATUS_UPDATE = "status_update", "Status Update"
+        RESERVATION = "reservation", "New Reservation"
         AUDIT = "audit", "Audit"
         GENERAL = "general", "General"
 
@@ -478,6 +508,13 @@ class AdminNotification(models.Model):
     )
     order = models.ForeignKey(
         Order,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_notifications",
+    )
+    reservation = models.ForeignKey(
+        "Reservation",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

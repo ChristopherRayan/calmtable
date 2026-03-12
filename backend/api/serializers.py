@@ -13,6 +13,7 @@ from .models import (
     OrderItem,
     Reservation,
     Review,
+    StaffMember,
     Table,
     UserProfile,
 )
@@ -26,6 +27,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
     profile_image_url = serializers.SerializerMethodField()
+    must_change_password = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -38,11 +40,20 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "phone",
             "profile_image_url",
             "is_staff",
+            "is_active",
             "role",
+            "must_change_password",
         )
 
     def get_role(self, obj):
+        profile = getattr(obj, "profile", None)
+        if profile:
+            return profile.role
         return "admin" if obj.is_staff else "customer"
+
+    def get_must_change_password(self, obj):
+        profile = getattr(obj, "profile", None)
+        return profile.must_change_password if profile else False
 
     def get_phone(self, obj):
         profile = getattr(obj, "profile", None)
@@ -222,6 +233,29 @@ class UserProfileUpdateSerializer(serializers.Serializer):
         return instance
 
 
+class StaffMemberSerializer(serializers.ModelSerializer):
+    """Serializer for public staff member profiles."""
+
+    role_display = serializers.CharField(source="get_role_display", read_only=True)
+
+    class Meta:
+        model = StaffMember
+        fields = (
+            "id",
+            "full_name",
+            "role",
+            "role_display",
+            "email",
+            "phone",
+            "photo",
+            "bio",
+            "hire_date",
+            "is_active",
+            "display_on_website",
+            "created_at",
+        )
+
+
 class MenuItemSerializer(serializers.ModelSerializer):
     """Serializer for menu item responses including average ratings."""
 
@@ -271,14 +305,16 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = ("id", "table_number", "seats", "description")
+        fields = ("id", "table_number", "seats", "description", "is_active")
 
 
 class ReservationSerializer(serializers.ModelSerializer):
     """Serializer for reservation create and retrieve responses."""
 
     table = TableSerializer(read_only=True)
-    table_id = serializers.IntegerField(write_only=True, source="table")
+    table_id = serializers.PrimaryKeyRelatedField(
+        queryset=Table.objects.all(), source="table", write_only=True
+    )
 
     class Meta:
         model = Reservation
@@ -417,6 +453,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "total_amount",
             "notes",
             "stripe_payment_intent_id",
+            "assigned_chef",
             "items",
             "created_at",
             "updated_at",

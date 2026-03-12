@@ -299,3 +299,46 @@ export async function fetchAnalytics(): Promise<AnalyticsPayload> {
   const response = await api.get<AnalyticsPayload>('/analytics/');
   return response.data;
 }
+
+export async function changePassword(password: string): Promise<void> {
+  await api.post('/auth/change-password/', { password });
+}
+
+export async function fetchStaff(): Promise<AuthUser[]> {
+  const response = await api.get<AuthUser[]>('/staff/users/');
+  return response.data;
+}
+
+export async function toggleStaffActive(userId: number): Promise<{ id: number; is_active: boolean }> {
+  const response = await api.post<{ id: number; is_active: boolean }>(`/staff/users/${userId}/toggle-active/`);
+  return response.data;
+}
+
+export async function fetchChefs(): Promise<AuthUser[]> {
+  const response = await api.get<AuthUser[]>('/staff/users/chefs/');
+  return response.data;
+}
+
+export async function assignOrderToChef(orderId: number, chefId: number): Promise<Order> {
+  const response = await api.post<Order>(`/orders/${orderId}/assign/`, { chef_id: chefId });
+  return response.data;
+}
+
+export async function fetchTables(): Promise<Table[]> {
+  const response = await api.get<Table[]>('/tables/');
+  return response.data;
+}
+
+export async function createTable(data: { table_number: string; capacity: number; description?: string }): Promise<Table> {
+  const response = await api.post<Table>('/tables/', data);
+  return response.data;
+}
+
+export async function updateTable(id: number, data: { table_number?: string; capacity?: number; description?: string; is_active?: boolean }): Promise<Table> {
+  const response = await api.patch<Table>(`/tables/${id}/`, data);
+  return response.data;
+}
+
+export async function deleteTable(id: number): Promise<void> {
+  await api.delete(`/tables/${id}/`);
+}

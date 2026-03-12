@@ -171,6 +171,9 @@ RESERVATION_TIME_SLOTS = env.list(
         "21:00",
     ],
 )
+# Open hours for reservations (24-hour format)
+RESERVATION_OPEN_HOUR = 17  # 5:00 PM
+RESERVATION_CLOSE_HOUR = 21  # 9:00 PM
 
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND",
@@ -224,6 +227,18 @@ JAZZMIN_SETTINGS = {
     "custom_css": "css/admin_custom.css",
     "custom_js": "js/admin_custom_v2.js",
     "show_ui_builder": False,
+    "hide_apps": ["auth"],
+    "hide_models": ["api.orderitem", "api.userprofile", "auth.group"],
+    "custom_links": {
+        "api": [
+            {
+                "name": "Users",
+                "url": "calmtable_admin:auth_user_changelist",
+                "icon": "fas fa-users-cog",
+                "permissions": ["auth.view_user"],
+            },
+        ],
+    },
 }
 
 JAZZMIN_UI_TWEAKS = {

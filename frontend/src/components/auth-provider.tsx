@@ -2,6 +2,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 
 import { clearAuthSession, getAccessToken, getRefreshToken, getStoredUser, setAuthSession } from '@/lib/auth';
 import { fetchCurrentUser, loginUser, logoutUser, registerUser, updateCurrentUserProfile } from '@/lib/services';
@@ -112,6 +113,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }),
     [user, loading, refreshProfile, updateProfile]
   );
+
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!loading && user?.must_change_password && pathname !== '/change-password') {
+      router.replace('/change-password');
+    }
+  }, [user, loading, router, pathname]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

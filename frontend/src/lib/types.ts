@@ -54,6 +54,7 @@ export interface Table {
   table_number: string;
   seats: number;
   description: string;
+  is_active: boolean;
 }
 
 export interface AvailableTablesResponse {
@@ -67,9 +68,9 @@ export interface AvailableTablesResponse {
 
 export interface AvailableSlotsResponse {
   date: string;
-  available_slots: string[];
-  full_slots: string[];
-  max_reservations_per_slot: number;
+  open_hour: number;
+  close_hour: number;
+  is_past?: boolean;
 }
 
 export interface AuthUser {
@@ -81,7 +82,9 @@ export interface AuthUser {
   phone: string;
   profile_image_url: string;
   is_staff: boolean;
-  role: 'admin' | 'customer';
+  is_active: boolean;
+  role: 'admin' | 'customer' | 'manager' | 'chef' | 'waiter' | 'cashier' | 'cleaner';
+  must_change_password: boolean;
 }
 
 export interface AuthResponse {
@@ -137,10 +140,10 @@ export interface OrderCreatePayload {
   items: Array<
     | OrderCreateItemPayload
     | {
-        name: string;
-        price_raw: number;
-        qty: number;
-      }
+      name: string;
+      price_raw: number;
+      qty: number;
+    }
   >;
 }
 
@@ -156,7 +159,7 @@ export interface OrderItem {
   line_total: string;
 }
 
-export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+export type OrderStatus = 'pending' | 'confirmed' | 'assigned' | 'preparing' | 'ready' | 'completed' | 'cancelled';
 
 export interface Order {
   id: number;
@@ -168,6 +171,7 @@ export interface Order {
   notes: string;
   stripe_payment_intent_id: string;
   items: OrderItem[];
+  assigned_chef: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -195,11 +199,12 @@ export interface NotificationItem {
   id: number;
   title: string;
   message: string;
-  notif_type: 'new_order' | 'status_update' | 'general';
+  notif_type: 'new_order' | 'status_update' | 'general' | 'audit' | 'reservation';
   payload: Record<string, unknown>;
   is_read: boolean;
   created_at: string;
   order_number?: string;
+  link_url?: string;
 }
 
 export interface MembersResponseItem {

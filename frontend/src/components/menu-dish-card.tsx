@@ -54,7 +54,7 @@ export function MenuDishCard({ item, onAddToCart }: MenuDishCardProps) {
         ) : (
           <p className="text-xs text-tableBrown/70">No reviews yet</p>
         )}
-        <p className="text-sm text-muted">{item.description}</p>
+        <p className="text-sm text-ink/80">{item.description}</p>
         {item.dietary_tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {item.dietary_tags.map((tag) => (

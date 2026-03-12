@@ -236,7 +236,7 @@ export function Navigation() {
                 href={link.href}
                 className={cn(
                   'relative text-[11px] font-medium uppercase tracking-[0.18em] hover:text-woodAccent',
-                  isTransparentNav ? 'text-white/80' : 'text-ink/58',
+                  isTransparentNav ? 'text-white/80' : 'text-ink',
                   isActive(link.href) && 'text-woodAccent'
                 )}
               >

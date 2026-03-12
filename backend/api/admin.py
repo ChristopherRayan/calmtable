@@ -92,6 +92,8 @@ class CalmTableAdminSite(AdminSite):
         if notification.order:
             from django.urls import reverse
             return redirect(reverse("admin:api_order_change", args=[notification.order.pk]))
+        if notification.reservation:
+            return redirect(reverse("admin:api_reservation_change", args=[notification.reservation.pk]))
         if notification.link_url:
             return redirect(notification.link_url)
 
@@ -233,29 +235,123 @@ class BaseModelAdmin(admin.ModelAdmin):
         return response
 
 
-class UserAdmin(BaseModelAdmin, DjangoUserAdmin):
+
+class UserForm(forms.ModelForm):
+    """Merged form for User and UserProfile fields."""
+
+    role = forms.ChoiceField(choices=UserProfile.Role.choices, required=False)
+    phone = forms.CharField(max_length=20, required=False)
+    image = forms.ImageField(required=False, label="Profile Image")
+    password = forms.CharField(widget=forms.PasswordInput(), required=False, help_text="Enter a new password to change it.")
+
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "email", "username")
+        widgets = {
+            "username": forms.HiddenInput(),
+        }
+        labels = {
+            "last_name": "Surname",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            try:
+                profile = self.instance.profile
+                self.fields["role"].initial = profile.role
+                self.fields["phone"].initial = profile.phone
+                self.fields["image"].initial = profile.profile_image
+            except UserProfile.DoesNotExist:
+                pass
+        
+        # Ensure email is treated as username
+        self.fields["email"].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get("email")
+        if email:
+            cleaned_data["username"] = email
+        return cleaned_data
+
+
+class UserAdmin(DjangoUserAdmin, BaseModelAdmin):
     """User admin with deactivation-only lifecycle controls."""
 
-    list_display = (
-        "username",
-        "email",
-        "first_name",
-        "last_name",
-        "active_badge",
-        "is_staff",
-        "last_login",
-    )
-    list_filter = ("is_active", "is_staff", "is_superuser", "date_joined")
-    search_fields = ("username", "email", "first_name", "last_name")
-    ordering = ("-id",)
-    date_hierarchy = "date_joined"
+    list_display = DjangoUserAdmin.list_display + ("role_display", "active_badge")
+    list_filter = DjangoUserAdmin.list_filter + ("profile__role",)
+    search_fields = DjangoUserAdmin.search_fields + ("profile__phone",)
     readonly_fields = ("date_joined", "last_login")
+
+
     fieldsets = (
-        ("Identity", {"fields": ("username", "email", "password")}),
-        ("Personal", {"fields": ("first_name", "last_name"), "classes": ("collapse",)}),
-        ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
-        ("Activity", {"fields": ("last_login", "date_joined"), "classes": ("collapse",)}),
+        (
+            "Essential Information",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "password",
+                    "role",
+                    "phone",
+                    "image",
+                )
+            },
+        ),
     )
+    add_fieldsets = fieldsets
+    form = UserForm
+    add_form = UserForm
+
+    def save_model(self, request, obj, form, change):
+        # Default username to email if empty
+        if not obj.username:
+            obj.username = obj.email
+        
+        # Handle password hashing
+        password = form.cleaned_data.get("password")
+        if password and (not obj.pk or 'password' in form.changed_data):
+            obj.set_password(password)
+        
+        # Determine if we should force a password change (for new staff)
+        is_new = not obj.pk
+        role = form.cleaned_data.get("role")
+        
+        # Set is_staff based on role - only if current user is a superuser
+        # or explicitly authorized to grant staff access
+        if role and role != UserProfile.Role.CUSTOMER:
+            # Only superusers can grant staff access
+            if request.user.is_superuser:
+                obj.is_staff = True
+            elif not change:  # For new users, if not superuser, don't auto-grant staff
+                pass  # Keep is_staff as default (False for new users)
+            elif obj.is_staff:  # For existing users being edited, preserve existing value
+                pass  # Don't change it
+        
+        super().save_model(request, obj, form, change)
+
+        # Sync Profile
+        profile, _ = UserProfile.objects.get_or_create(user=obj)
+        if role:
+            profile.role = role
+        if form.cleaned_data.get("phone"):
+            profile.phone = form.cleaned_data.get("phone")
+        if form.cleaned_data.get("image"):
+            profile.profile_image = form.cleaned_data.get("image")
+        
+        if is_new and obj.is_staff:
+            profile.must_change_password = True
+            
+        profile.save()
+
+    @admin.display(description="Role")
+    def role_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        if profile:
+            return profile.get_role_display()
+        return "—"
     actions = BaseModelAdmin.actions + ("activate_selected_users", "deactivate_selected_users")
 
     @admin.display(description="Status")
@@ -543,6 +639,7 @@ class OrderAdmin(BaseModelAdmin):
         "notes",
         "created_at",
         "updated_at",
+        "assigned_chef",
         "download_receipt_link",
     )
     inlines = (OrderItemInline,)
@@ -559,6 +656,7 @@ class OrderAdmin(BaseModelAdmin):
                     "status",
                     "total_amount",
                     "notes",
+                    "assigned_chef",
                 )
             },
         ),
@@ -644,6 +742,7 @@ class OrderItemAdmin(BaseModelAdmin):
         return False
 
 
+
 class UserProfileAdmin(BaseModelAdmin):
     """User profile metadata admin."""
 
@@ -671,9 +770,9 @@ class AdminNotificationAdmin(BaseModelAdmin):
     search_fields = ("title", "message", "recipient__username", "recipient__email")
     ordering = ("-created_at", "-id")
     date_hierarchy = "created_at"
-    readonly_fields = ("recipient", "order", "title", "message", "notif_type", "payload", "is_read", "created_at")
+    readonly_fields = ("recipient", "order", "reservation", "title", "message", "notif_type", "payload", "is_read", "created_at")
     fieldsets = (
-        ("Notification", {"fields": ("recipient", "order", "title", "message", "notif_type", "payload", "is_read")}),
+        ("Notification", {"fields": ("recipient", "order", "reservation", "title", "message", "notif_type", "payload", "is_read")}),
         ("Audit", {"fields": ("created_at",), "classes": ("collapse",)}),
     )
     actions = BaseModelAdmin.actions + ("mark_read", "mark_unread")
@@ -1187,8 +1286,6 @@ custom_admin_site.register(Table, TableAdmin)
 custom_admin_site.register(Reservation, ReservationAdmin)
 custom_admin_site.register(Review, ReviewAdmin)
 custom_admin_site.register(Order, OrderAdmin)
-custom_admin_site.register(OrderItem, OrderItemAdmin)
-custom_admin_site.register(UserProfile, UserProfileAdmin)
 custom_admin_site.register(AdminNotification, AdminNotificationAdmin)
 custom_admin_site.register(FrontendSettings, FrontendSettingsAdmin)
 custom_admin_site.register(StaffMember, StaffMemberAdmin)

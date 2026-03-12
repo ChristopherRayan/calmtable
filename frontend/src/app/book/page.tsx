@@ -100,13 +100,13 @@ export default function BookPage() {
       try {
         setSlotLoading(true);
         const response = await fetchAvailableSlots(selectedDate);
-        setAvailableSlots(response.available_slots);
-        setFullSlots(response.full_slots);
-        if (selectedTimeSlot && !response.available_slots.includes(selectedTimeSlot)) {
+        // No longer using predefined slots - now using time input with open hours validation
+        // Just reset slot selection when date changes
+        if (selectedTimeSlot) {
           setSelectedTimeSlot('');
         }
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Failed to load available time slots.');
+        toast.error(error instanceof Error ? error.message : 'Failed to load reservation hours.');
       } finally {
         setSlotLoading(false);
       }
@@ -198,11 +198,11 @@ export default function BookPage() {
         <SectionHeading
           eyebrow="Reservations"
           title="Book Your Table"
-          description="Secure your preferred dining time in one quick booking modal."
+          description="Experience fine dining in an atmosphere of tranquility."
         />
-        <Card elevated className="mt-6 text-sm text-tableBrown/80">
-          Loading account details...
-        </Card>
+        <div className="mt-10 flex justify-center">
+          <p className="text-ink/60">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -213,48 +213,16 @@ export default function BookPage() {
         <SectionHeading
           eyebrow="Reservations"
           title="Book Your Table"
-          description="Customer registration is required before creating reservations."
+          description="Experience fine dining in an atmosphere of tranquility."
         />
-        <Card elevated className="mt-6 space-y-4">
-          <p className="text-sm text-tableBrown/85">
-            Sign in or create a customer account to book, checkout, and leave menu reviews.
+        <div className="mt-10 flex flex-col items-center justify-center">
+          <p className="text-ink/80 mb-6 text-center">
+            Please log in to make a reservation.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/login?next=/book"
-              className="inline-flex rounded-full bg-tableBrown px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-tableBrownLight"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/login?mode=register"
-              className="inline-flex rounded-full border border-woodAccent bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-tableBrown hover:bg-warmGray"
-            >
-              Register Customer
-            </Link>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  if (user?.is_staff) {
-    return (
-      <div className="page-shell py-10">
-        <SectionHeading
-          eyebrow="Reservations"
-          title="Book Your Table"
-          description="Staff and admin accounts cannot create customer reservations."
-        />
-        <Card elevated className="mt-6 space-y-3 text-sm text-tableBrown/85">
-          <p>Please sign in with a customer account to continue booking.</p>
-          <Link
-            href="/login?next=/book"
-            className="inline-flex rounded-full bg-tableBrown px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-tableBrownLight"
-          >
-            Switch Account
+          <Link href="/login?redirect=/book">
+            <Button>Log In to Book</Button>
           </Link>
-        </Card>
+        </div>
       </div>
     );
   }
@@ -339,55 +307,38 @@ export default function BookPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-tableBrown">Select Time Slot</p>
-                      {slotLoading && <p className="text-sm text-tableBrown">Loading available slots...</p>}
-                      {!slotLoading && (
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                          {[...availableSlots, ...fullSlots.filter((slot) => !availableSlots.includes(slot))].map((slot) => {
-                            const isFull = fullSlots.includes(slot);
-                            const isSelected = selectedTimeSlot === slot;
-                            return (
-                              <button
-                                key={slot}
-                                type="button"
-                                disabled={isFull}
-                                aria-label={isFull ? `${slot} slot full` : `Select ${slot}`}
-                                onClick={() => setSelectedTimeSlot(slot)}
-                                className={cn(
-                                  'h-11 rounded-xl border text-sm font-semibold',
-                                  isFull && 'cursor-not-allowed border-neutral-300 bg-neutral-100 text-neutral-500',
-                                  !isFull && isSelected && 'border-tableBrown bg-tableBrown text-white',
-                                  !isFull && !isSelected && 'border-woodAccent bg-white text-tableBrown hover:bg-warmGray'
-                                )}
-                              >
-                                {slot}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                      <p className="text-sm font-medium text-tableBrown">Select Time</p>
+                      <p className="text-xs text-tableBrown/70">Choose any time between 5:00 PM and 9:00 PM</p>
+                      <input
+                        type="time"
+                        value={selectedTimeSlot}
+                        onChange={(e) => setSelectedTimeSlot(e.target.value)}
+                        min="17:00"
+                        max="21:00"
+                        className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm text-tableBrown"
+                      />
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">                      <div className="space-y-2">
-                        <label htmlFor="duration" className="text-sm font-medium text-tableBrown">
-                          Duration (Hours)
-                        </label>
-                        <select
-                          id="duration"
-                          value={durationHours}
-                          onChange={(event) => setDurationHours(Number(event.target.value))}
-                          className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
-                        >
-                          <option value={1}>1 hour</option>
-                          <option value={2}>2 hours</option>
-                          <option value={3}>3 hours</option>
-                          <option value={4}>4 hours</option>
-                          <option value={5}>5 hours</option>
-                          <option value={6}>6 hours</option>
-                          <option value={7}>7 hours</option>
-                          <option value={8}>8 hours</option>
-                        </select>
-                      </div>
+                      <label htmlFor="duration" className="text-sm font-medium text-tableBrown">
+                        Duration (Hours)
+                      </label>
+                      <select
+                        id="duration"
+                        value={durationHours}
+                        onChange={(event) => setDurationHours(Number(event.target.value))}
+                        className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                      >
+                        <option value={1}>1 hour</option>
+                        <option value={2}>2 hours</option>
+                        <option value={3}>3 hours</option>
+                        <option value={4}>4 hours</option>
+                        <option value={5}>5 hours</option>
+                        <option value={6}>6 hours</option>
+                        <option value={7}>7 hours</option>
+                        <option value={8}>8 hours</option>
+                      </select>
+                    </div>
                     </div>
 
                     {selectedTimeSlot && (
@@ -421,17 +372,17 @@ export default function BookPage() {
                     )}
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">                      <div className="space-y-2 sm:col-span-2">
-                        <label htmlFor="name" className="text-sm font-medium text-tableBrown">
-                          Full Name
-                        </label>
-                        <input
-                          id="name"
-                          type="text"
-                          {...register('name')}
-                          className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
-                        />
-                        {errors.name && <p className="text-xs text-[#E07065]">{errors.name.message}</p>}
-                      </div>
+                      <label htmlFor="name" className="text-sm font-medium text-tableBrown">
+                        Full Name
+                      </label>
+                      <input
+                        id="name"
+                        type="text"
+                        {...register('name')}
+                        className="h-11 w-full rounded-xl border border-woodAccent bg-white px-3 text-sm"
+                      />
+                      {errors.name && <p className="text-xs text-[#E07065]">{errors.name.message}</p>}
+                    </div>
 
                       <div className="space-y-2">
                         <label htmlFor="email" className="text-sm font-medium text-tableBrown">
